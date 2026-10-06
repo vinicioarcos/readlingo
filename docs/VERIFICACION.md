@@ -1,10 +1,10 @@
 # Evidencia de verificación · 2026-10-06
 
-Estado: MVP local implementado. No desplegado. Sin credenciales reales de servicios externos.
+Estado actual: MVP local y demo estática HTTPS publicados. Importación TXT/EPUB privada en navegador. Sin validación real de Azure ni micrófono físico; backend público completo pendiente.
 
 ## Importación EPUB cliente · 2026-10-06
 
-T021 en verificación de despliegue. Pruebas ejecutadas antes de publicar:
+T021 completada y verificada en el despliegue. Pruebas ejecutadas antes de publicar:
 - `node --check web/app.js`, `node --check web/epub.js`, sintaxis de browser_smoke.cjs y compilación de cuatro archivos: PASS.
 - `node --test tests/test_frontend.cjs`: 10 PASS. EPUB cliente sin API, texto original y aviso de idioma; error no altera datos.
 - `node --test tests/test_epub.cjs`: 9 PASS. ZIP stored/deflate, CRC, tamaños, duplicados, rutas, solapamientos, descriptores, ZIP64 y expansión real acotada. XML completo se prueba en navegador.
@@ -13,7 +13,9 @@ T021 en verificación de despliegue. Pruebas ejecutadas antes de publicar:
 - EPUB original de prueba generado en memoria: orden spine independiente del orden ZIP, título/idioma, lectura, vocabulario y posición tras recargar; texto importado incluido en exportación/restauración completa.
 - EPUB2 con DOCTYPE XHTML externo eliminado, entidades tipográficas habituales y ofuscación IDPF de fuente: PASS. Scripts/estilos/recursos remotos no se ejecutan ni se cargan. Rechazos de corrupción, cifrado, DRM, XXE, traversal, profundidad 300 y expansión DEFLATE real de 6 MiB con tamaño declarado 1 preservan datos.
 
-El libro no se traduce automáticamente: se conserva el idioma original. Sin imágenes ni maquetación; límite de texto 500.000 caracteres. Entidades XML internas, capítulos no XHTML, ZIP64 y cifrado textual no compatibles. Se exige descompresión nativa deflate-raw en navegador moderno. No se usaron libros privados ni se añadieron bibliotecas de ejecución. Prueba remota pendiente en esta entrada; hardware y Azure real siguen pendientes históricos.
+El libro no se traduce automáticamente: se conserva el idioma original. Sin imágenes ni maquetación; límite de texto 500.000 caracteres. Entidades XML internas, capítulos no XHTML, ZIP64 y cifrado textual no compatibles. Se exige descompresión nativa deflate-raw en navegador moderno. No se usaron libros privados ni se añadieron bibliotecas de ejecución. Hardware y Azure real siguen pendientes históricos.
+
+Verificación pública ejecutada sobre código `7e7f9fa`, despliegue READY `dpl_Hk3P52XsXo2vhSBs2NjZKE6Lq4KQ`: Chrome 154.0.8037.95 en https://readlingo.arcdata.app y Edge 154.0.4258.62 en https://readlingo-eight.vercel.app, ambos 17 flujos PASS, cero errores JavaScript/cero solicitudes API. Los cuatro recursos públicos responden 200 y su contenido coincide con la compilación verificada (normalizando finales de línea). CSP mantiene connect-src none; servidor, .env, README y API de importación responden 404. CI de código aprobada: https://github.com/vinicioarcos/readlingo/actions/runs/37536529956, Python 3.11/3.12, Node 22, 18 backend/10 frontend/9 ZIP, sintaxis y compilación. No hay monitoreo continuo configurado; la evidencia corresponde a los recorridos y comprobaciones HTTP ejecutados.
 
 ## Demo estática Vercel · 2026-10-06
 

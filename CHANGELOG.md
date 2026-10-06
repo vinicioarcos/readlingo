@@ -2,6 +2,7 @@
 
 ## 0.3.0 · 2026-10-06
 Importación EPUB privada directamente en el navegador y disponible en Vercel. Texto por orden de lectura, título e idioma del libro; sin subir archivos ni ejecutar HTML. Límites ZIP, CRC, descompresión acotada y rechazo de cifrado textual. Mantiene vocabulario, posición y respaldos. EPUB2 con entidades tipográficas habituales y fuentes ofuscadas compatible. El libro conserva su idioma original; no se traduce automáticamente.
+Verificación pública Chrome/Edge: 17 flujos PASS; CI aprobada con 18 pruebas backend, 10 frontend y 9 ZIP. T021 completada. Micrófono físico y Azure real siguen pendientes.
 
 ## 0.2.0 · 2026-10-06
 Demo estática para Vercel con publicación limitada a tres archivos, aviso de alcance e importación TXT local UTF-8. EPUB y Azure se conservan en versión local. CSP bloquea conexiones API en la demo. Pruebas de importación inválida y ausencia de API añadidas; compilación incluida en CI.
