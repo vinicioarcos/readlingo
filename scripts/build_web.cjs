@@ -4,7 +4,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const output = path.join(root, 'dist');
 fs.mkdirSync(output, { recursive: true });
-const allowed = ['index.html', 'epub.js', 'app.js', 'styles.css'];
+const allowed = ['index.html', 'storage.js', 'epub.js', 'app.js', 'styles.css'];
 for (const name of allowed) {
   let content = fs.readFileSync(path.join(root, 'web', name), 'utf8');
   if (name === 'index.html') content = content.replace('<html lang="es">', '<html lang="es" data-runtime="demo">');

@@ -8,7 +8,7 @@ La demo permite leer, pegar texto, importar TXT UTF-8 y EPUB sin DRM, guardar pa
 
 Abrir: https://readlingo.arcdata.app (también https://readlingo-eight.vercel.app). Usa siempre el mismo dominio para conservar tu progreso; exporta/restaura el respaldo si cambias de dirección.
 
-Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con cuatro archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y las políticas del sitio bloquean conexiones API. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
+Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con cinco archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y las políticas del sitio bloquean conexiones API. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
 
 ## Inicio en Windows
 1. Descomprime ReadLingo_VSCode.zip en una carpeta propia, por ejemplo `C:\1.-CODIGO\ReadLingo`.
@@ -77,7 +77,7 @@ node --test tests/test_frontend.cjs
 Consulta docs/VERIFICACION.md para resultados reales y comprobaciones pendientes. Flujo manual: abrir texto → consultar palabra → guardar → repasar → importar TXT/EPUB → recargar → comprobar progreso → grabar/reproducir → probar proveedores si se configuran.
 
 ## Datos y límites
-Los libros y el progreso se guardan en localStorage de ese navegador. No se sincronizan. Exporta una copia y conserva tus archivos originales; borrar datos del navegador elimina el progreso. El audio no se persiste en el servidor. Las solicitudes a Azure quedan sujetas a las condiciones del proveedor.
+Los libros y el progreso se guardan en IndexedDB de ese navegador (localStorage limitado si no est? disponible). No se sincronizan. Exporta una copia y conserva tus archivos originales; borrar datos del navegador elimina el progreso. El audio no se persiste en el servidor. Las solicitudes a Azure quedan sujetas a las condiciones del proveedor.
 
 La interfaz admite hasta 30 libros importados de 500.000 caracteres cada uno. Máximos del backend: 10 MiB por archivo, 24 MiB EPUB descomprimido y 1,5 millones de caracteres; la interfaz aplica el límite menor y la cuota del navegador puede agotarse antes. Un EPUB muy grande o con maquetación compleja puede necesitar conversión previa. No admite PDF/OCR ni DRM.
 

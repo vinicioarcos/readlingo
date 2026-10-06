@@ -137,44 +137,38 @@ function isObject(x) {
 function validKey(key) {
   return /^[\p{L}][\p{L}'’-]{0,59}$/u.test(key) && !['constructor', 'prototype', '__proto__'].includes(key);
 }
-function load() {
+let storageBlocked = false;
+function storageMessage(message, error = false) {
+  $('storage-status').textContent = message;
+  $('storage-status').classList.toggle('storage-error', error);
+}
+async function load() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const saved = JSON.parse(raw);
-    if (!isObject(saved) || saved.version !== 1 || !Array.isArray(saved.books) || !isObject(saved.positions) || !isObject(saved.vocab)) throw Error('Formato no válido');
-    state.books = saved.books.slice(0, 30).filter(b => isObject(b) && typeof b.id === 'string' && /^user-[\w-]+$/.test(b.id) && typeof b.title === 'string' && typeof b.text === 'string' && b.text.trim() && b.text.length <= 500000).map(b => ({
-      id: b.id,
-      title: b.title.slice(0, 120),
-      text: b.text,
-      level: 'Personal',
-      subtitle: 'Texto importado por ti · Nivel sin evaluar'
-    }));
-    for (const [key, value] of Object.entries(saved.positions)) {
-      if ((SEED_BOOKS.some(b => b.id === key) || state.books.some(b => b.id === key)) && Number.isInteger(value) && value >= 0) state.positions[key] = value;
-    }
-    for (const [key, v] of Object.entries(saved.vocab).slice(0, 10000)) {
-      if (validKey(key) && isObject(v) && typeof v.meaning === 'string' && ['learning', 'known'].includes(v.status) && Number.isFinite(v.due) && Number.isFinite(v.interval) && v.interval >= 0 && v.interval <= 3650) {
-        state.vocab[key] = {
-          meaning: v.meaning.slice(0, 2000),
-          source: typeof v.source === 'string' ? v.source.slice(0, 120) : 'Origen no registrado',
-          ipa: typeof v.ipa === 'string' ? v.ipa.slice(0, 120) : '',
-          status: v.status,
-          due: v.due,
-          interval: v.interval
-        };
-      }
-    }
-    if (allBooks().some(b => b.id === saved.currentBook)) state.currentBook = saved.currentBook;
+    if (!globalThis.ReadLingoStore) throw Error('Storage module unavailable');
+    const result = await ReadLingoStore.load(validateBackup);
+    if (result.state) state = result.state;
+    storageMessage(result.backend === 'indexedDB' ? 'Guardado en este dispositivo. Tus libros y tu progreso se recuperan al volver a abrir este mismo sitio.' : 'Guardado local limitado: no se pudo usar IndexedDB. Exporta un respaldo antes de importar muchos libros.');
   } catch (error) {
-    notify('No se pudo recuperar el progreso guardado. Se cargó la biblioteca de ejemplo.', true);
+    storageBlocked = true;
+    $('export-recovery').hidden = false;
+    storageMessage('No se pudieron recuperar los datos guardados. Se conservan sin sobrescribir. Descarga una copia para recuperar, o restaura un respaldo.', true);
+    notify('No se pudo recuperar el progreso guardado. Se muestra la biblioteca de ejemplo.', true);
   }
 }
-function save() {
+async function save() {
+  if (storageBlocked) {
+    storageMessage('Guardado bloqueado para conservar tus datos anteriores. Descarga una copia para recuperar o restaura un respaldo.', true);
+    return false;
+  }
+  const snapshot = JSON.stringify(state);
+  storageMessage('Guardando cambios en este dispositivo...');
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const result = await ReadLingoStore.save(JSON.parse(snapshot));
+    if (JSON.stringify(state) === snapshot) state = result.state;
+    storageMessage('Cambios guardados en este dispositivo. No hay sincronizacion entre dispositivos.');
     return true;
   } catch (error) {
+    storageMessage('Cambios sin guardar: no se pudo escribir en este dispositivo. Exporta tu progreso antes de salir.', true);
     notify('Los cambios solo están en esta sesión: no se pudo guardar en el navegador. Exporta tu progreso antes de salir.', true);
     return false;
   }
@@ -235,11 +229,11 @@ function renderShelf() {
     const copy = create('span', 'shelf-copy');
     copy.append(create('strong', '', book.title), create('small', '', book.level === 'Personal' ? 'Lectura importada' : `${book.level} · ReadLingo Originals`));
     button.append(copy);
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async () => {
       stopSpeech();
       clearRecording();
       state.currentBook = book.id;
-      save();
+      await save();
       showView('reader');
       renderReader();
     });
@@ -308,9 +302,10 @@ function selectWord(word, button) {
   $('word-translate').hidden = !config.translation;
   $('word-translate').disabled = false;
 }
-function storeWord(status) {
+async function storeWord(status) {
   if (!selectedWord || !validKey(selectedWord)) return;
-  const existing = state.vocab[selectedWord];
+  const word = selectedWord;
+  const existing = state.vocab[word];
   const entry = DICTIONARY[selectedWord];
   state.vocab[selectedWord] = {
     meaning: $('word-meaning').dataset.translatedWord === selectedWord ? $('word-meaning').textContent : existing?.meaning || entry?.[0] || 'Significado pendiente de consultar',
@@ -320,8 +315,9 @@ function storeWord(status) {
     due: Date.now(),
     interval: existing?.interval || 0
   };
-  const persisted = save();
+  const persisted = await save();
   updateCounts();
+  if (selectedWord !== word) return;
   $('word-save').textContent = status === 'learning' ? '✓ Guardada' : '＋ Aprender';
   document.querySelectorAll('.word').forEach(el => {
     if (el.dataset.word === selectedWord) el.classList.toggle('learned', status === 'learning');
@@ -359,10 +355,10 @@ function renderVocab() {
     const card = create('article', 'vocab-entry');
     card.append(create('h2', '', word), create('small', '', v.ipa), create('p', '', v.meaning), create('small', '', v.status === 'known' ? '✓ Conocida' : `En práctica · ${v.due <= Date.now() ? 'lista para repasar' : 'próximo repaso ' + new Date(v.due).toLocaleDateString('es')}`));
     const button = create('button', 'text-button', v.status === 'known' ? 'Volver a practicar' : 'Marcar como conocida');
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async () => {
       v.status = v.status === 'known' ? 'learning' : 'known';
       v.due = Date.now();
-      save();
+      await save();
       renderVocab();
       updateCounts();
     });
@@ -397,16 +393,16 @@ function renderReview() {
   const again = create('button', 'button subtle', 'Otra vez · 10 min');
   const days = Math.min(v.interval ? Math.max(1, v.interval * 2) : 1, 3650);
   const good = create('button', 'button primary', `Lo recordé · ${days} día${days > 1 ? 's' : ''}`);
-  again.addEventListener('click', () => {
+  again.addEventListener('click', async () => {
     v.due = Date.now() + 600000;
     v.interval = 0;
-    save();
+    await save();
     renderReview();
   });
-  good.addEventListener('click', () => {
+  good.addEventListener('click', async () => {
     v.interval = days;
     v.due = Date.now() + days * 86400000;
-    save();
+    await save();
     renderReview();
   });
   buttons.append(again, good);
@@ -729,7 +725,7 @@ async function translate() {
     if (state.vocab[word]) {
       state.vocab[word].meaning = result.translation;
       state.vocab[word].source = $('word-source').textContent;
-      save();
+      await save();
     }
     notify(`Traducción en línea${result.source ? ' · ' + result.source : ''}. Revisa su sentido en contexto.`);
   } catch (error) {
@@ -738,7 +734,7 @@ async function translate() {
     if (token === translationToken) $('word-translate').disabled = false;
   }
 }
-function addBook(title, text) {
+async function addBook(title, text) {
   const clean = text.replace(/\r\n?/g, '\n').trim();
   if (!clean) throw Error('El libro no contiene texto legible.');
   if (clean.length > 500000) throw Error('El límite de esta versión es de 500.000 caracteres por lectura.');
@@ -754,28 +750,28 @@ function addBook(title, text) {
   clearRecording();
   state.books.push(book);
   state.currentBook = book.id;
-  const persisted = save();
+  const persisted = await save();
   showView('reader');
   renderReader();
   if (persisted) notify('Tu lectura ya está en la biblioteca.');
   return persisted;
 }
 function downloadProgress() {
-  const blob = new Blob([JSON.stringify({
-    ...state,
-    exportedAt: new Date().toISOString()
-  }, null, 2)], {
+  downloadFile(JSON.stringify({...state, exportedAt: new Date().toISOString()}, null, 2), `readlingo-progreso-${new Date().toISOString().slice(0, 10)}.json`);
+  notify('Exportación creada con tus lecturas, palabras y progreso.');
+}
+function downloadFile(content, filename) {
+  const blob = new Blob([content], {
     type: 'application/json'
   });
   const url = URL.createObjectURL(blob);
   const link = create('a');
   link.href = url;
-  link.download = `readlingo-progreso-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = filename;
   document.body.append(link);
   link.click();
   link.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  notify('Exportación creada con tus lecturas, palabras y progreso.');
 }
 function validateBackup(value) {
   const invalid = () => { throw Error('El respaldo no tiene un formato válido de ReadLingo.'); };
@@ -799,10 +795,13 @@ function validateBackup(value) {
   }
   return {version: 1, books, currentBook: value.currentBook, positions, vocab};
 }
-function restoreProgress(text) {
+async function restoreProgress(text) {
   const candidate = validateBackup(JSON.parse(text));
   // Persist first: a quota failure must leave the current session intact.
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(candidate));
+  await ReadLingoStore.replace(candidate);
+  storageBlocked = false;
+  $('export-recovery').hidden = true;
+  storageMessage('Respaldo guardado en este dispositivo.');
   stopSpeech();
   clearRecording();
   translationToken++;
@@ -824,11 +823,11 @@ $('nav-vocab').addEventListener('click', () => showView('vocab'));
 $('nav-review').addEventListener('click', () => showView('review'));
 $('prev').addEventListener('click', () => navigate(-1));
 $('next').addEventListener('click', () => navigate(1));
-function navigate(delta) {
+async function navigate(delta) {
   stopSpeech();
   clearRecording();
   state.positions[currentBook().id] = Math.max(0, Math.min(paragraphs().length - 1, position() + delta));
-  save();
+  await save();
   renderReader();
 }
 $('listen').addEventListener('click', () => speak(sentences, true));
@@ -869,10 +868,10 @@ $('assess').addEventListener('click', assess);
 $('paste-top').addEventListener('click', () => $('paste-dialog').showModal());
 $('add-text').addEventListener('click', () => $('paste-dialog').showModal());
 $('close-paste').addEventListener('click', () => $('paste-dialog').close());
-$('paste-form').addEventListener('submit', event => {
+$('paste-form').addEventListener('submit', async event => {
   event.preventDefault();
   try {
-    addBook($('paste-title').value, $('paste-content').value);
+    await addBook($('paste-title').value, $('paste-content').value);
     $('paste-form').reset();
     $('paste-dialog').close();
   } catch (error) {
@@ -890,13 +889,13 @@ async function importReading(file) {
       throw Error('Guarda el archivo TXT con codificación UTF-8.');
     }
     if (text.includes('\u0000')) throw Error('El archivo no parece texto UTF-8.');
-    addBook(file.name.replace(/\.txt$/i, ''), text);
+    await addBook(file.name.replace(/\.txt$/i, ''), text);
     return;
   }
   if (!/\.epub$/i.test(file.name)) throw Error('Importa un archivo TXT o EPUB sin DRM.');
   if (!globalThis.ReadLingoEpub) throw Error('No se pudo cargar el importador EPUB. Recarga la página e inténtalo de nuevo.');
   const result = await ReadLingoEpub.extract(await file.arrayBuffer());
-  const persisted = addBook(result.title || file.name.replace(/\.epub$/i, ''), result.text);
+  const persisted = await addBook(result.title || file.name.replace(/\.epub$/i, ''), result.text);
   if (persisted && result.language && !/^en(?:-|$)/i.test(result.language)) {
     notify(`El EPUB declara el idioma «${result.language}». Se conserva el texto original; ReadLingo no lo traduce automáticamente. Para practicar inglés, importa una edición en inglés.`);
   }
@@ -928,29 +927,52 @@ $('restore-input').addEventListener('change', async () => {
     const text = await file.text();
     const candidate = validateBackup(JSON.parse(text));
     if (!confirm(`¿Restaurar ${candidate.books.length} lecturas importadas y ${Object.keys(candidate.vocab).length} palabras? Reemplazará tu progreso actual. Exporta una copia antes de continuar.`)) return;
-    restoreProgress(text);
+    await restoreProgress(text);
   } catch (error) {
     notify('No se restauró el respaldo. Comprueba el archivo y el espacio disponible en el navegador.', true);
   } finally {
     $('restore-data').disabled = false;
   }
 });
-$('reset-data').addEventListener('click', () => {
+$('reset-data').addEventListener('click', async () => {
   if (!confirm('¿Eliminar de este navegador tus lecturas importadas, palabras y progreso? Exporta una copia antes si deseas conservarlos.')) return;
-  stopSpeech();
-  clearRecording();
-  state = {
-    version: 1,
-    books: [],
-    currentBook: 'garden',
-    positions: {},
-    vocab: {}
-  };
-  selectedWord = '';
-  const persisted = save();
-  showView('reader');
-  renderReader();
-  if (persisted) notify('Progreso restablecido.');
+  const candidate = {version: 1, books: [], currentBook: 'garden', positions: {}, vocab: {}};
+  try {
+    await ReadLingoStore.replace(candidate);
+    storageBlocked = false;
+    $('export-recovery').hidden = true;
+    stopSpeech();
+    clearRecording();
+    state = candidate;
+    selectedWord = '';
+    showView('reader');
+    renderReader();
+    storageMessage('Progreso restablecido y guardado en este dispositivo.');
+    notify('Progreso restablecido.');
+  } catch (error) {
+    storageMessage('No se pudo restablecer el progreso. Tus datos actuales se conservan.', true);
+  }
+});
+$('protect-storage').addEventListener('click', async () => {
+  $('protect-storage').disabled = true;
+  try {
+    const granted = await ReadLingoStore.protect();
+    $('protection-status').textContent = (granted ? 'Proteccion de almacenamiento concedida. Borrar los datos del navegador todavia elimina tu biblioteca: conserva un respaldo.' : 'El navegador no concedio proteccion frente al borrado automatico. Tus datos siguen guardados; conserva un respaldo.');
+  } catch (error) {
+    $('protection-status').textContent = 'No se pudo solicitar proteccion de almacenamiento. Conserva un respaldo.';
+  } finally {
+    $('protect-storage').disabled = false;
+  }
+});
+$('export-recovery').addEventListener('click', async () => {
+  try {
+    const raw = await ReadLingoStore.recovery();
+    if (!raw) throw Error('No recovery data');
+    downloadFile(raw, 'readlingo-recuperacion.json');
+    notify('Copia de recuperacion descargada. Los datos originales siguen conservados.');
+  } catch (error) {
+    storageMessage('No se pudo descargar la copia de recuperacion. No borres los datos del navegador.', true);
+  }
 });
 window.addEventListener('pagehide', () => {
   stopSpeech();
@@ -959,9 +981,16 @@ window.addEventListener('pagehide', () => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden && recorder?.state === 'recording') recorder.stop();
 });
-load();
-renderReader();
-populateVoices();
+if (document.body) document.body.inert = true;
+const appReady = (async () => {
+  try {
+    await load();
+    renderReader();
+    populateVoices();
+  } finally {
+    if (document.body) document.body.inert = false;
+  }
+})();
 if ('speechSynthesis' in window) window.speechSynthesis.addEventListener('voiceschanged', populateVoices);
 if (DEMO_MODE) {
   $('demo-notice').hidden = false;

@@ -1,0 +1,81 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const {merge} = require('../web/storage.js');
+const empty = () => ({version: 1, books: [], currentBook: 'garden', positions: {}, vocab: {}});
+test('unrelated stale-tab changes preserve saved books, vocabulary and positions', () => {
+  const base = empty(), local = empty(), durable = empty();
+  local.positions.garden = 4;
+  local.vocab.apple = {meaning: 'manzana'};
+  durable.books.push({id: 'user-remote', text: 'Remote book'});
+  durable.vocab.tree = {meaning: 'árbol'};
+  durable.positions['user-remote'] = 2;
+  const result = merge(base, local, durable);
+  assert.deepEqual(result.books, durable.books);
+  assert.deepEqual(result.vocab, {...durable.vocab, ...local.vocab});
+  assert.deepEqual(result.positions, {...durable.positions, ...local.positions});
+  assert.deepEqual(base, empty());
+});
+test('intentional deletion changes only keys present in local baseline', () => {
+  const base = empty();
+  base.books = [{id: 'user-old', text: 'Old'}];
+  base.vocab.old = {meaning: 'anterior'};
+  const durable = structuredClone(base);
+  durable.books.push({id: 'user-new', text: 'New'});
+  durable.vocab.new = {meaning: 'nuevo'};
+  const result = merge(base, empty(), durable);
+  assert.deepEqual(result.books, [{id: 'user-new', text: 'New'}]);
+  assert.deepEqual(result.vocab, {new: {meaning: 'nuevo'}});
+});
+test('same field conflict uses new local commit and does not revert remote selection', () => {
+  const base = empty(), local = empty(), durable = empty();
+  base.positions.garden = 1;
+  local.positions.garden = 2;
+  durable.positions.garden = 3;
+  durable.currentBook = 'economy';
+  assert.equal(merge(base, local, durable).positions.garden, 2);
+  assert.equal(merge(base, local, durable).currentBook, 'economy');
+});
+test('new local book appends and changed book replaces its durable version', () => {
+  const base = empty();
+  base.books = [{id: 'user-a', text: 'Before'}];
+  const local = structuredClone(base), durable = structuredClone(base);
+  local.books[0].text = 'After';
+  local.books.push({id: 'user-b', text: 'B'});
+  durable.books.push({id: 'user-c', text: 'C'});
+  assert.deepEqual(merge(base, local, durable).books, [{id: 'user-a', text: 'After'}, {id: 'user-c', text: 'C'}, {id: 'user-b', text: 'B'}]);
+});
+test('two fresh tabs preserve both initial imported books', () => {
+  const local = empty(), durable = empty();
+  local.books = [{id: 'user-local', text: 'Local'}];
+  local.currentBook = 'user-local';
+  durable.books = [{id: 'user-remote', text: 'Remote'}];
+  durable.currentBook = 'user-remote';
+  const result = merge(null, local, durable);
+  assert.equal(result.books.length, 2);
+  assert.equal(result.currentBook, 'user-local');
+});
+test('deleting selected imported book removes its position and selects a seed', () => {
+  const base = empty();
+  base.books = [{id: 'user-old', text: 'Old'}];
+  base.currentBook = 'user-old';
+  const local = structuredClone(base);
+  local.books = [];
+  const durable = structuredClone(base);
+  durable.positions['user-old'] = 20;
+  const result = merge(base, local, durable);
+  assert.equal(result.currentBook, 'garden');
+  assert.deepEqual(result.positions, {});
+});
+test('stale progress cannot resurrect a book concurrently deleted by another tab', () => {
+  const base = empty();
+  base.books = [{id: 'user-old', text: 'Old'}];
+  base.currentBook = 'user-old';
+  const local = structuredClone(base);
+  local.positions['user-old'] = 30;
+  local.vocab.apple = {meaning: 'manzana'};
+  const result = merge(base, local, empty());
+  assert.deepEqual(result.books, []);
+  assert.deepEqual(result.positions, {});
+  assert.equal(result.currentBook, 'garden');
+  assert.equal(result.vocab.apple.meaning, 'manzana');
+});

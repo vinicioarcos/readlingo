@@ -9,3 +9,5 @@
 @media(max-width:620px){.export{position:static;display:inline-block;margin:12px 12px 0 0;font-size:11px}.reset{display:inline-block;margin:12px 0 0;font-size:11px}}
 
 .demo-notice{font-size:12px;line-height:1.6;background:var(--lime);border-radius:8px;padding:12px 16px;margin:20px 0}.demo-notice[hidden]{display:none}
+
+.storage-panel{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:16px 0;font-size:11px;line-height:1.6}.storage-panel p{margin:0}.storage-panel .text-button{margin-right:15px}.storage-error{color:#9b3d27;font-weight:600}

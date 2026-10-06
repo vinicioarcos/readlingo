@@ -20,3 +20,4 @@ T018,local,Conservar y mostrar origen del significado,Lector,verified_local,Fuen
 T019,local,Resolver prioridad de traduccion al guardar vocabulario,Lector,verified_local,Significado visible y guardado consistente al traducir guardar seleccionar y recargar con prueba de comportamiento
 T020,demo,Demostracion estatica HTTPS en Vercel,Desarrollo,verified_live_demo,Ruta principal funcional TXT local sin API respaldo y audio local sin publicar archivos del servidor
 T021,demo,Importacion EPUB privada en navegador,Lector,verified_live_demo,EPUB ingles en orden spine sin subir libros ni ejecutar HTML con errores visibles y progreso persistente
+T022,demo,Persistencia robusta del dispositivo,Lector,in_progress,IndexedDB migracion no destructiva reinicio de navegador concurrencia errores visibles y restauracion transaccional

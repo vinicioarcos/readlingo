@@ -103,3 +103,10 @@ Recorrido: glosario → guardar → repaso → persistencia → importar TXT →
 6. Sólo si hay recursos configurados: traducir oración; evaluar una grabación con consentimiento; repetir con silencio y ruido y comprobar errores honestos.
 
 No usar como certificador de nivel, calificador automático de estudiantes ni servicio público sin completar las tareas de piloto y producción.
+
+## Persistencia del dispositivo ? 2026-10-06
+Historia T022: un lector recupera libros, vocabulario, posiciones y repaso tras cerrar el navegador en el mismo perfil y dominio. IndexedDB migra localStorage conservando el original; protege datos corruptos, muestra fallos de guardado y confirma restauraci?n/restablecimiento antes de cambiar memoria. Dos pesta?as combinan cambios diferentes dentro de una transacci?n; misma clave usa ?ltimo guardado. Contrato y l?mites: docs/PERSISTENCIA.md.
+
+Ejecutado: `node --check web/app.js`; `node --test tests/test_frontend.cjs tests/test_storage.cjs tests/test_epub.cjs`: 26 aprobadas (10 interfaz simulada, 7 combinaci?n, 9 ZIP). Backend `python -m unittest discover -s tests -v`: 17 aprobadas y 1 omitida por privilegio de symlink en Windows. Build genera cinco archivos permitidos; sin nueva dependencia de ejecuci?n. Pruebas reales de navegador y publicaci?n se registrar?n al terminar.
+
+Revisi?n independiente P03 y navegador real local http://127.0.0.1:8766: Chrome 154.0.8037.95 y Edge 154.0.4258.62, `READLINGO_DEMO=1` y canal correspondiente. `node tests/storage_browser.cjs`: 8 flujos por navegador, incluidos migraci?n, primeras importaciones simult?neas, biblioteca mayor de 5 MiB, mezcla de pesta?as, fallo de transacci?n al restaurar, reemplazo/restablecimiento, corrupci?n preservada y cierre/reapertura de perfil persistente sint?tico. `node tests/browser_smoke.cjs`: 17 flujos por navegador. Sin errores JS ni llamadas API. Audio simulado, no hardware real. No se usaron libros privados.
