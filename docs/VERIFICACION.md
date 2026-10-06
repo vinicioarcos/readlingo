@@ -2,6 +2,19 @@
 
 Estado: MVP local implementado. No desplegado. Sin credenciales reales de servicios externos.
 
+## Importación EPUB cliente · 2026-10-06
+
+T021 en verificación de despliegue. Pruebas ejecutadas antes de publicar:
+- `node --check web/app.js`, `node --check web/epub.js`, sintaxis de browser_smoke.cjs y compilación de cuatro archivos: PASS.
+- `node --test tests/test_frontend.cjs`: 10 PASS. EPUB cliente sin API, texto original y aviso de idioma; error no altera datos.
+- `node --test tests/test_epub.cjs`: 9 PASS. ZIP stored/deflate, CRC, tamaños, duplicados, rutas, solapamientos, descriptores, ZIP64 y expansión real acotada. XML completo se prueba en navegador.
+- Backend local: 17 PASS y 1 SKIP por permisos de enlaces simbólicos en Windows.
+- Revisión independiente E02 y smoke contra demo estática: Chrome 154.0.8037.95 y Edge 154.0.4258.62, ambos PASS, 17 flujos, cero errores de página y cero solicitudes API.
+- EPUB original de prueba generado en memoria: orden spine independiente del orden ZIP, título/idioma, lectura, vocabulario y posición tras recargar; texto importado incluido en exportación/restauración completa.
+- EPUB2 con DOCTYPE XHTML externo eliminado, entidades tipográficas habituales y ofuscación IDPF de fuente: PASS. Scripts/estilos/recursos remotos no se ejecutan ni se cargan. Rechazos de corrupción, cifrado, DRM, XXE, traversal, profundidad 300 y expansión DEFLATE real de 6 MiB con tamaño declarado 1 preservan datos.
+
+El libro no se traduce automáticamente: se conserva el idioma original. Sin imágenes ni maquetación; límite de texto 500.000 caracteres. Entidades XML internas, capítulos no XHTML, ZIP64 y cifrado textual no compatibles. Se exige descompresión nativa deflate-raw en navegador moderno. No se usaron libros privados ni se añadieron bibliotecas de ejecución. Prueba remota pendiente en esta entrada; hardware y Azure real siguen pendientes históricos.
+
 ## Demo estática Vercel · 2026-10-06
 
 Validación antes de despliegue: 9 pruebas frontend PASS y sintaxis PASS. Backend local: 17 PASS y 1 SKIP por privilegio Windows de enlace simbólico. Compilación Node sin dependencias: sólo index.html/app.js/styles.css en dist; modo demo explícito.

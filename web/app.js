@@ -758,6 +758,7 @@ function addBook(title, text) {
   showView('reader');
   renderReader();
   if (persisted) notify('Tu lectura ya está en la biblioteca.');
+  return persisted;
 }
 function downloadProgress() {
   const blob = new Blob([JSON.stringify({
@@ -892,11 +893,13 @@ async function importReading(file) {
     addBook(file.name.replace(/\.txt$/i, ''), text);
     return;
   }
-  if (DEMO_MODE) throw Error('En esta demo puedes importar TXT o pegar texto. EPUB está disponible en la versión local.');
   if (!/\.epub$/i.test(file.name)) throw Error('Importa un archivo TXT o EPUB sin DRM.');
-  const result = await api('/api/import', {filename: file.name, data: toBase64(await file.arrayBuffer())});
-  if (typeof result.text !== 'string') throw Error('El servidor no devolvió texto utilizable.');
-  addBook(result.title || file.name, result.text);
+  if (!globalThis.ReadLingoEpub) throw Error('No se pudo cargar el importador EPUB. Recarga la página e inténtalo de nuevo.');
+  const result = await ReadLingoEpub.extract(await file.arrayBuffer());
+  const persisted = addBook(result.title || file.name.replace(/\.epub$/i, ''), result.text);
+  if (persisted && result.language && !/^en(?:-|$)/i.test(result.language)) {
+    notify(`El EPUB declara el idioma «${result.language}». Se conserva el texto original; ReadLingo no lo traduce automáticamente. Para practicar inglés, importa una edición en inglés.`);
+  }
 }
 $('file-input').addEventListener('change', async () => {
   const file = $('file-input').files[0];
@@ -910,7 +913,7 @@ $('file-input').addEventListener('change', async () => {
     notify(error.message || 'No se pudo importar el libro.', true);
   } finally {
     $('import-button').disabled = false;
-    $('import-button').textContent = DEMO_MODE ? '＋ Importar TXT' : '＋ Importar libro';
+    $('import-button').textContent = '＋ Importar libro';
   }
 });
 $('export-data').addEventListener('click', downloadProgress);
@@ -962,9 +965,8 @@ populateVoices();
 if ('speechSynthesis' in window) window.speechSynthesis.addEventListener('voiceschanged', populateVoices);
 if (DEMO_MODE) {
   $('demo-notice').hidden = false;
-  $('file-input').accept = '.txt';
-  $('import-button').textContent = '＋ Importar TXT';
-  $('import-help').textContent = 'Importa un TXT UTF-8 o pega un texto que tengas derecho a utilizar. EPUB está disponible en la versión local.';
+  $('file-input').accept = '.txt,.epub';
+  $('import-help').textContent = 'Importa TXT UTF-8 o EPUB sin DRM de una edición en inglés. Se conserva el texto original, sin traducción automática ni ilustraciones. El archivo se procesa en tu navegador.';
   $('assessment-mode').textContent = 'Grabación local: escucha y compara. Esta demo no envía audio ni ofrece evaluación automática. Azure está disponible en la versión local.';
   $('assessment-controls').hidden = true;
 } else api('/api/config').then(value => {

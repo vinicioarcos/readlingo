@@ -113,6 +113,18 @@ test('demo imports UTF8 TXT without API and rejects unsafe or unsupported files'
  for(const bad of [file('book.epub',[1]),file('bad.txt',[0xff]),file('nul.txt',[65,0,66]),{name:'huge.txt',size:11*1024*1024}]){
  h.context.file=bad;await assert.rejects(h.run('importReading(file)'));assert.equal(h.data(),intact);
  }
- assert.equal(calls,0);assert.equal(h.ids['demo-notice'].hidden,false);assert.equal(h.ids['file-input'].accept,'.txt');
+ assert.equal(calls,0);assert.equal(h.ids['demo-notice'].hidden,false);assert.equal(h.ids['file-input'].accept,'.txt,.epub');
  assert.equal(h.ids['assessment-controls'].hidden,true);
+});
+
+test('EPUB client integration preserves original text and makes no upload',async()=>{
+ const h=harness(null,true);let calls=0;h.context.fetch=()=>{calls++;throw Error('Unexpected upload')};
+ h.context.ReadLingoEpub={extract:async()=>({title:'Original English Book',text:'A morning in the garden.',language:'en-US'})};
+ h.context.file={name:'book.epub',size:10,arrayBuffer:async()=>new ArrayBuffer(10)};
+ await h.run('importReading(file)');assert.equal(h.run('currentBook().title'),'Original English Book');
+ assert.equal(h.run('currentBook().text'),'A morning in the garden.');assert.equal(calls,0);
+ h.context.ReadLingoEpub.extract=async()=>({title:'Spanish book',text:'Un texto original.',language:'es'});
+ await h.run('importReading(file)');assert.match(h.ids.status.textContent,/no lo traduce/);
+ const intact=h.data();h.context.ReadLingoEpub.extract=async()=>{throw Error('EPUB corrupto')};
+ await assert.rejects(h.run('importReading(file)'));assert.equal(h.data(),intact);assert.equal(calls,0);
 });

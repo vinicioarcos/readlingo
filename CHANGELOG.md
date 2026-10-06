@@ -1,5 +1,8 @@
 # Historial
 
+## 0.3.0 · 2026-10-06
+Importación EPUB privada directamente en el navegador y disponible en Vercel. Texto por orden de lectura, título e idioma del libro; sin subir archivos ni ejecutar HTML. Límites ZIP, CRC, descompresión acotada y rechazo de cifrado textual. Mantiene vocabulario, posición y respaldos. EPUB2 con entidades tipográficas habituales y fuentes ofuscadas compatible. El libro conserva su idioma original; no se traduce automáticamente.
+
 ## 0.2.0 · 2026-10-06
 Demo estática para Vercel con publicación limitada a tres archivos, aviso de alcance e importación TXT local UTF-8. EPUB y Azure se conservan en versión local. CSP bloquea conexiones API en la demo. Pruebas de importación inválida y ausencia de API añadidas; compilación incluida en CI.
 Publicación HTTPS verificada en readlingo.arcdata.app y readlingo-eight.vercel.app con Chrome/Edge: 15 flujos aprobados y ningún error de página ni solicitud API. CI aprobada. T020 completada.

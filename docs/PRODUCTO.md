@@ -25,7 +25,7 @@ La pronunciación automática es retroalimentación orientativa. En piloto real 
 
 ## Demo web
 
-Versión de demostración en HTTPS con lectura, vocabulario, repaso, TXT y grabación local. Aceptación: abrir `/`, importar TXT sin llamadas API, conservar vocabulario y respaldo, rechazar EPUB con explicación y no publicar archivos del repositorio. Se muestra un aviso permanente de límites y almacenamiento local. No incluye evaluación Azure, cuentas, sincronización ni backend público.
+Versión de demostración en HTTPS con lectura, vocabulario, repaso, TXT/EPUB y grabación local. Aceptación: abrir `/`, importar TXT sin llamadas API, conservar vocabulario y respaldo, extraer EPUB en orden de lectura sin ejecutar contenido ni subir el archivo y no publicar archivos del repositorio. Se muestra un aviso permanente de límites y almacenamiento local. No incluye evaluación Azure, cuentas, sincronización ni backend público.
 
 ## Fuera de la versión local
 Cuentas, sincronización, catálogo comercial, pagos, OCR/PDF, EPUB con DRM, conversación abierta con tutor LLM, PWA offline completa y despliegue público. Ver backlog para evolución. El motor de tutor autónomo no está implementado; los agentes incluidos construyen y revisan el software.

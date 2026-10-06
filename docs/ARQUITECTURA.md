@@ -2,7 +2,7 @@
 
 ## ADR-004: demostración estática en Vercel · 2026-10-06
 
-La demo pública publica únicamente los tres archivos de interfaz permitidos mediante `scripts/build_web.cjs` y `vercel.json`, con Node 24.x como herramienta de compilación. HTML generado activa `data-runtime="demo"`; el HTML local conserva sus APIs. TXT se decodifica en el navegador con UTF-8 estricto y se trata como texto no confiable. EPUB/Azure no están disponibles en la demo. No hay backend, claves, audio enviado, datos por usuario en servidor ni funciones pagadas; por eso esta entrega no habilita las APIs públicas que requieren autenticación y cuotas. T010/T012/T013 permanecen pendientes para el producto completo.
+La demo pública publica únicamente los cuatro archivos de interfaz permitidos mediante `scripts/build_web.cjs` y `vercel.json`, con Node 24.x como herramienta de compilación. HTML generado activa `data-runtime="demo"`; el HTML local conserva sus APIs. TXT se decodifica en el navegador con UTF-8 estricto y se trata como texto no confiable. Azure no está disponible en la demo; EPUB se procesa localmente en el navegador mediante web/epub.js. No hay backend, claves, audio enviado, datos por usuario en servidor ni funciones pagadas; por eso esta entrega no habilita las APIs públicas que requieren autenticación y cuotas. T010/T012/T013 permanecen pendientes para el producto completo.
 
 CSP bloquea conexiones (`connect-src 'none'`), scripts externos y objetos; permite audio blob local y micrófono del mismo origen. Progreso e importaciones permanecen en localStorage y el audio en memoria. La síntesis depende de las voces del sistema, que pueden usar red. HTTPS lo aporta Vercel. No se expone el servidor loopback como servidor de producción.
 
@@ -40,3 +40,6 @@ Voz modelo: síntesis del navegador y voces instaladas. Grabación: MediaRecorde
 
 ## Evolución pública
 Mantener dominio y lógica de lectura; migrar servidor a backend de producción con autenticación, autorización por usuario, límites diarios, presupuesto, auditoría sin texto privado, política de borrado y almacenamiento privado. Usar base de datos para progreso y objetos privados para libros. Probar exportación/migración desde localStorage. Elegir alojamiento tras medir límites del audio y concurrencia: no presentar este servidor como directamente desplegable en Vercel.
+
+## ADR-005: EPUB privado en el navegador
+Importador cliente sin dependencias externas de ejecución, con ZIP limitado, descompresión nativa y XML inerte. Sigue container/manifest/spine, entrega título/texto/idioma, valida integridad y limita entradas/expansión. El lector usa nodos de texto; nunca inserta HTML de un libro. La demo mantiene connect-src none y no envía libros ni audio. EPUB y TXT importados permanecen en el almacenamiento del navegador con los mismos límites y respaldos. El texto original no se traduce; metadatos no ingleses generan un aviso.

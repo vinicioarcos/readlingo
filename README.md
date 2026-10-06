@@ -4,11 +4,11 @@ Lee en inglés, consulta vocabulario, escucha y practica tu voz. Proyecto editab
 
 ## Demo web en Vercel
 
-La demo permite leer, pegar texto, importar TXT UTF-8, guardar palabras, repasar, escuchar, grabarse localmente y exportar/restaurar respaldos. EPUB y Azure están disponibles únicamente con el servidor local. No hay cuentas ni sincronización: el progreso se conserva por navegador y dirección del sitio. Los TXT se leen en tu navegador; la demo no envía libros ni audio a un backend. Algunas voces del sistema pueden usar servicios de voz externos.
+La demo permite leer, pegar texto, importar TXT UTF-8 y EPUB sin DRM, guardar palabras, repasar, escuchar, grabarse localmente y exportar/restaurar respaldos. Azure está disponible únicamente con el servidor local. No hay cuentas ni sincronización: el progreso se conserva por navegador y dirección del sitio. Los TXT y EPUB se leen en tu navegador; la demo no envía libros ni audio a un backend. Algunas voces del sistema pueden usar servicios de voz externos.
 
 Abrir: https://readlingo.arcdata.app (también https://readlingo-eight.vercel.app). Usa siempre el mismo dominio para conservar tu progreso; exporta/restaura el respaldo si cambias de dirección.
 
-Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con tres archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y las políticas del sitio bloquean conexiones API. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
+Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con cuatro archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y las políticas del sitio bloquean conexiones API. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
 
 ## Inicio en Windows
 1. Descomprime ReadLingo_VSCode.zip en una carpeta propia, por ejemplo `C:\1.-CODIGO\ReadLingo`.
@@ -100,3 +100,8 @@ Si el puerto 8765 está ocupado, detén la instancia anterior. Si el micrófono 
 
 ## Respaldo y restauracion
 Usa Exportar mi progreso para descargar tus lecturas y palabras. Restaurar respaldo acepta el JSON exportado y pide confirmar el reemplazo del progreso actual. Un archivo invalido o un fallo de cuota conserva los datos actuales. Guarda una copia antes de reemplazarlos.
+
+## Leer un EPUB en inglés
+En la aplicación pulsa **Importar libro** y elige un archivo `.epub` sin DRM de una edición en inglés. La importación extrae texto siguiendo el orden de lectura del EPUB; no traduce el libro ni conserva ilustraciones o diseño. Luego puedes seleccionar palabras, escuchar con una voz inglesa y guardar el progreso. El archivo no se sube a Vercel ni a otro proveedor.
+
+Límites del importador del navegador: 10 MiB de archivo, 24 MiB de contenido declarado descomprimido, 1.500 entradas ZIP, 5 MiB por recurso y 500.000 caracteres de texto. Se requiere un navegador moderno con descompresión DEFLATE nativa; textos cifrados, ZIP64 y EPUB con DRM no son compatibles. Se tolera la ofuscación estándar de fuentes, porque no se extraen tipografías. Los EPUB pueden declarar el idioma incorrectamente: importa una edición que sepas que está en inglés.

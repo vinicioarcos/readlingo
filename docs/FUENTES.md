@@ -12,3 +12,5 @@
 - Traducción: https://learn.microsoft.com/en-us/azure/ai-services/translator/text-translation/reference/v3/translate
 
 Las capacidades documentadas no sustituyen pruebas de integración con recursos reales. No se consultaron ni se prometen precios o cuotas gratuitas específicas.
+
+Importador EPUB cliente: documentación consultada el 2026-10-06, W3C EPUB 3.3 (recomendación 2026-01-13), https://www.w3.org/TR/epub-33/; API nativa DecompressionStream, https://developer.mozilla.org/en-US/docs/Web/API/DecompressionStream. Sin instalación de bibliotecas de ejecución. Compatibilidad real probada se registrará en VERIFICACION.md.

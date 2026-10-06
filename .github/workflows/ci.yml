@@ -18,5 +18,7 @@ jobs:
           node-version: '22'
       - run: python -m unittest discover -s tests -v
       - run: node --check web/app.js
+      - run: node --check web/epub.js
       - run: node --test tests/test_frontend.cjs
+      - run: node --test tests/test_epub.cjs
       - run: node scripts/build_web.cjs
