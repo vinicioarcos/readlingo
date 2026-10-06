@@ -1,5 +1,8 @@
 # Historial
 
+## 0.4.0 ? 2026-10-06
+Persistencia local con IndexedDB y migraci?n no destructiva. Transacciones, combinaci?n entre pesta?as, avisos de escritura fallida, recuperaci?n de datos da?ados y protecci?n opcional del navegador. Restauraci?n bloquea interacci?n hasta confirmar el guardado. Libros y progreso sobreviven al reinicio en el mismo perfil y dominio; no hay sincronizaci?n entre dispositivos. Producci?n verificada en Chrome/Edge: 10 escenarios de persistencia y 17 del lector por navegador; CI aprobada. T022 completada.
+
 ## 0.3.0 · 2026-10-06
 Importación EPUB privada directamente en el navegador y disponible en Vercel. Texto por orden de lectura, título e idioma del libro; sin subir archivos ni ejecutar HTML. Límites ZIP, CRC, descompresión acotada y rechazo de cifrado textual. Mantiene vocabulario, posición y respaldos. EPUB2 con entidades tipográficas habituales y fuentes ofuscadas compatible. El libro conserva su idioma original; no se traduce automáticamente.
 Verificación pública Chrome/Edge: 17 flujos PASS; CI aprobada con 18 pruebas backend, 10 frontend y 9 ZIP. T021 completada. Micrófono físico y Azure real siguen pendientes.
