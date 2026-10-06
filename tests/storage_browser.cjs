@@ -112,6 +112,23 @@ const word=meaning=>({meaning,source:'Synthetic test',ipa:'',status:'learning',d
  assert.deepEqual(await read(page),replaced);
  assert.deepEqual(await page.evaluate(()=>JSON.parse(JSON.stringify(state))),sessionBeforeFailure);
  flows.push('aborted replacement transaction preserves durable and visible session state');
+ const delayedReplacement=await page.evaluate(async value=>{
+  const actualReplace=ReadLingoStore.replace,actualSave=ReadLingoStore.save;
+  let release,saveCalls=0;
+  const gate=new Promise(resolve=>{release=resolve});
+  ReadLingoStore.replace=async candidate=>{await gate;return actualReplace(candidate)};
+  ReadLingoStore.save=async candidate=>{saveCalls++;return actualSave(candidate)};
+  const replacementPromise=restoreProgress(JSON.stringify(value));
+  try{
+   const inertDuringReplace=document.body.inert;
+   const savedDuringReplace=await save();
+   release();await replacementPromise;
+   return {inertDuringReplace,savedDuringReplace,saveCalls,inertAfterReplace:document.body.inert};
+  }finally{release();ReadLingoStore.replace=actualReplace;ReadLingoStore.save=actualSave}
+ },original());
+ assert.deepEqual(delayedReplacement,{inertDuringReplace:true,savedDuringReplace:false,saveCalls:0,inertAfterReplace:false});
+ assert.deepEqual(await read(page),replaced);
+ flows.push('delayed restore disables interaction and normal save never enters storage queue');
  await page.evaluate(async value=>ReadLingoStore.replace(value),empty());
  assert.deepEqual(await read(page),empty());
  await page.reload();await page.locator('.word').first().waitFor();
@@ -131,6 +148,26 @@ const word=meaning=>({meaning,source:'Synthetic test',ipa:'',status:'learning',d
  assert.equal(await read(page),null);
  flows.push('corrupt migration is retained and normal writes are blocked');
  await corruptContext.close();
+
+ const legacyBeforeOpenFailure=JSON.stringify(original());
+ const openFailureContext=await newContext(legacyBeforeOpenFailure);
+ await openFailureContext.addInitScript(origin=>{
+  if(location.origin!==origin)return;
+  indexedDB.open=()=>{throw new DOMException('Synthetic IndexedDB open denial','SecurityError')};
+ },new URL(baseURL).origin);
+ page=await open(openFailureContext);
+ assert.equal(await page.evaluate(()=>storageBlocked),true);
+ assert.equal(await page.evaluate(()=>localStorage.getItem('readlingo.v1')),legacyBeforeOpenFailure);
+ assert.equal(await page.evaluate(()=>ReadLingoStore.recovery()),legacyBeforeOpenFailure);
+ assert.equal(await page.evaluate(()=>save()),false);
+ const rejectedModuleWrite=await page.evaluate(async value=>{
+  try{await ReadLingoStore.save(value);return false}catch(error){return true}
+ },empty());
+ assert.equal(rejectedModuleWrite,true);
+ assert.equal(await page.evaluate(()=>localStorage.getItem('readlingo.v1')),legacyBeforeOpenFailure);
+ assert.match(await page.locator('#storage-status').innerText(),/bloqueado/);
+ flows.push('IndexedDB open failure preserves legacy recovery and blocks fallback writes');
+ await openFailureContext.close();
 
  // A dedicated synthetic profile also verifies durability after the browser closes.
  fs.mkdirSync('artifacts',{recursive:true});

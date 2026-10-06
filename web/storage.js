@@ -71,8 +71,8 @@
     validate = check;
     try {
       if (root.indexedDB) {
-        try { await open(); backend = 'indexedDB'; }
-        catch (error) { backend = 'localStorage'; }
+        backend = 'indexedDB';
+        await open();
       } else backend = 'localStorage';
       let result;
       if (backend === 'indexedDB') {
@@ -119,7 +119,7 @@
     load, save: state => commit(state, false), replace: state => commit(state, true),
     read: async () => { await queue; return backend === 'indexedDB' ? checked(await transaction(false, r => r))?.state || null : legacy(); },
     recovery: async () => {
-      if (backend === 'indexedDB') {
+      if (backend === 'indexedDB' && db) {
         const record = await transaction(false, r => r);
         if (record) return JSON.stringify(record, null, 2);
       }

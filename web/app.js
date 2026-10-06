@@ -138,6 +138,14 @@ function validKey(key) {
   return /^[\p{L}][\p{L}'’-]{0,59}$/u.test(key) && !['constructor', 'prototype', '__proto__'].includes(key);
 }
 let storageBlocked = false;
+let replacingStorage = false;
+async function replaceStoredState(candidate) {
+  if (replacingStorage) throw Error("Ya hay una restauracion en curso.");
+  replacingStorage = true;
+  if (document.body) document.body.inert = true;
+  try { return await ReadLingoStore.replace(candidate); }
+  finally { replacingStorage = false; if (document.body) document.body.inert = false; }
+}
 function storageMessage(message, error = false) {
   $('storage-status').textContent = message;
   $('storage-status').classList.toggle('storage-error', error);
@@ -156,6 +164,7 @@ async function load() {
   }
 }
 async function save() {
+  if (replacingStorage) return false;
   if (storageBlocked) {
     storageMessage('Guardado bloqueado para conservar tus datos anteriores. Descarga una copia para recuperar o restaura un respaldo.', true);
     return false;
@@ -798,7 +807,7 @@ function validateBackup(value) {
 async function restoreProgress(text) {
   const candidate = validateBackup(JSON.parse(text));
   // Persist first: a quota failure must leave the current session intact.
-  await ReadLingoStore.replace(candidate);
+  await replaceStoredState(candidate);
   storageBlocked = false;
   $('export-recovery').hidden = true;
   storageMessage('Respaldo guardado en este dispositivo.');
@@ -938,7 +947,7 @@ $('reset-data').addEventListener('click', async () => {
   if (!confirm('¿Eliminar de este navegador tus lecturas importadas, palabras y progreso? Exporta una copia antes si deseas conservarlos.')) return;
   const candidate = {version: 1, books: [], currentBook: 'garden', positions: {}, vocab: {}};
   try {
-    await ReadLingoStore.replace(candidate);
+    await replaceStoredState(candidate);
     storageBlocked = false;
     $('export-recovery').hidden = true;
     stopSpeech();
