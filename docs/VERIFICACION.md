@@ -8,7 +8,9 @@ Validación antes de despliegue: 9 pruebas frontend PASS y sintaxis PASS. Backen
 
 Revisión independiente DQ01 y smoke real en Chrome/Edge contra http://127.0.0.1:8766: PASS, 15 flujos, cero errores de página y cero solicitudes API. TXT UTF-8 con HTML se presenta como texto sin ejecución; EPUB rechazado sin cambiar progreso. Exportación/borrado/restauración y rechazo de respaldo inválido aprobados. Grabación simulada y WAV PCM16 mono 16 kHz; escritorio y ancho móvil sin desbordamiento. Smoke contra servidor local original también PASS, 12 flujos. Hardware y Azure real siguen pendientes.
 
-CSP y HTTPS requieren comprobación en el despliegue; http.server local no aplica headers de Vercel. Publicación web en curso; T020 no se declara completada antes de la comprobación remota.
+Despliegue de código `6626e88` READY en Vercel (producción, proyecto readlingo, equipo edwins-projects-f0f5d6e3). CI https://github.com/vinicioarcos/readlingo/actions/runs/37535036747 aprobada en Python 3.11/3.12, Node 22 y compilación estática.
+
+Verificación remota ejecutada: Chrome contra https://readlingo-eight.vercel.app y Edge contra https://readlingo.arcdata.app: ambos PASS, 15 flujos, cero errores de página y cero solicitudes API. HTTPS y headers CSP/Permissions-Policy aplicados. En ambos dominios `/`, `/app.js` y `/styles.css` devuelven 200; `/server.py`, `/.env`, `/README.md` y `/api/config` devuelven 404. Captura móvil inspeccionada: lectura y controles sin superposición. T020 completada; no equivale a completar el backend público T013 ni hardware/Azure reales. La observabilidad de esta demo se limita a comprobaciones HTTP y errores de página del recorrido; no se declara monitoreo continuo ni drenajes configurados.
 
 ## Entrega local completada · 2026-10-06
 

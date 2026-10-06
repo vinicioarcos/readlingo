@@ -6,6 +6,8 @@ Lee en inglés, consulta vocabulario, escucha y practica tu voz. Proyecto editab
 
 La demo permite leer, pegar texto, importar TXT UTF-8, guardar palabras, repasar, escuchar, grabarse localmente y exportar/restaurar respaldos. EPUB y Azure están disponibles únicamente con el servidor local. No hay cuentas ni sincronización: el progreso se conserva por navegador y dirección del sitio. Los TXT se leen en tu navegador; la demo no envía libros ni audio a un backend. Algunas voces del sistema pueden usar servicios de voz externos.
 
+Abrir: https://readlingo.arcdata.app (también https://readlingo-eight.vercel.app). Usa siempre el mismo dominio para conservar tu progreso; exporta/restaura el respaldo si cambias de dirección.
+
 Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con tres archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y las políticas del sitio bloquean conexiones API. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
 
 ## Inicio en Windows
