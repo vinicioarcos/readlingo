@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+data/
+recordings/
+*.wav
+*.webm
+*.epub
+artifacts/
+.DS_Store

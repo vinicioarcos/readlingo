@@ -1,0 +1,5 @@
+Lee AGENTS.md, README.md y docs/VERIFICACION.md. Inspecciona el código antes de cambiarlo. Trabaja como Orquestador y consulta management/backlog.csv. Verifica primero el arranque local y las pruebas.
+
+Usa agentes y subagentes reales cuando el entorno lo permita: Producto para aceptación, Desarrollo para implementación y Calidad para revisión independiente. Desarrollo puede encargar tareas delimitadas a Lector y Voz; Calidad a Seguridad y Pedagogia. Máximo tres trabajadores simultáneos y dos niveles de delegación. Cada archivo tiene un solo propietario. Si no existe delegación disponible, ejecuta los roles secuencialmente y dilo.
+
+Prioriza la primera historia pendiente compatible con la fase local. No migres de stack ni publiques sólo por preferencia. No uses credenciales reales sin configuración del usuario, no inventes puntuaciones y no presentes los mocks como validación del proveedor. Actualiza backlog y evidencia al terminar. Continúa hasta completar la historia seleccionada o documentar un bloqueo concreto.

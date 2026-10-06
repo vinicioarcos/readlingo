@@ -1,0 +1,20 @@
+id,fase,tarea,propietario,estado,aceptacion
+T001,local,Lector e importacion TXT EPUB,Lector,implemented,Texto navegable y recursos importados sin ejecutar HTML
+T002,local,Vocabulario y repaso,Lector,implemented,Guardar recargar y repasar palabras
+T003,local,Sintesis y grabacion,Voz,implemented,Reproducir frase y grabar con limpieza del microfono
+T004,local,Adaptadores Azure,Desarrollo,implemented_not_live_validated,Contrato validado sin inventar puntuaciones
+T005,piloto,Validar proveedor real,Voz,pending,Con credenciales probar frase clara silencio ruido timeout y cuota
+T006,piloto,Validar microfono y voces en Windows,Calidad,pending,Chrome y Edge con dispositivo real
+T007,piloto,Revisar glosas e IPA con docente,Pedagogia,pending,Correccion documentada de muestras y sentidos contextuales
+T008,piloto,Restaurar respaldo JSON,Lector,verified_local,Exportar restaurar y comparar sin perder progreso
+T009,piloto,Mejorar repaso adaptativo,Pedagogia,pending,Politica documentada y prueba de recuerdo diferido
+T010,produccion,Cuentas y aislamiento,Desarrollo,pending,Autenticacion y pruebas de acceso cruzado
+T011,produccion,Sincronizacion y migracion local,Desarrollo,pending,Progreso consistente entre dos dispositivos
+T012,produccion,Cuotas y control de coste,Seguridad,pending,Limites por usuario reintentos acotados y alertas de gasto
+T013,produccion,Despliegue HTTPS y operacion,Desarrollo,pending,Backend de produccion monitoreo y rollback probado
+T014,produccion,Catalogo y derechos,Producto,pending,Licencia registrada por obra y version
+T015,extension,Tutor conversacional,Producto,pending,ADR de runtime y evaluaciones antes de agregar LLM
+T016,extension,PDF y OCR,Lector,pending,Extraccion legible con aviso de errores y fuentes
+T017,investigacion,Piloto educativo,Pedagogia,pending,Protocolo consentimiento pretest postest y recuerdo diferido
+T018,local,Conservar y mostrar origen del significado,Lector,verified_local,Fuente visible en tarjeta vocabulario y repaso tras guardar y recargar
+T019,local,Resolver prioridad de traduccion al guardar vocabulario,Lector,verified_local,Significado visible y guardado consistente al traducir guardar seleccionar y recargar con prueba de comportamiento

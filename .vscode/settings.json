@@ -1,0 +1,5 @@
+{
+  "chat.subagents.allowInvocationsFromSubagents": true,
+  "editor.formatOnSave": true,
+  "files.exclude": {"**/__pycache__": true}
+}

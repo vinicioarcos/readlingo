@@ -1,0 +1,7 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {"label": "ReadLingo: iniciar", "type": "process", "command": "python3", "args": ["server.py"], "windows": {"command": "py", "args": ["-3", "server.py"]}, "problemMatcher": []},
+    {"label": "ReadLingo: pruebas", "type": "process", "command": "python3", "args": ["-m", "unittest", "discover", "-s", "tests", "-v"], "windows": {"command": "py", "args": ["-3", "-m", "unittest", "discover", "-s", "tests", "-v"]}, "problemMatcher": []}
+  ]
+}
