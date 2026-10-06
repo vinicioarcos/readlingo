@@ -2,6 +2,7 @@
 
 const $ = id => document.getElementById(id);
 const STORAGE_KEY = 'readlingo.v1';
+const DEMO_MODE = document.documentElement?.dataset.runtime === 'demo';
 const SEED_BOOKS = [{
   id: 'garden',
   title: 'A Garden in the City',
@@ -630,6 +631,7 @@ function toBase64(buffer) {
   return btoa(binary);
 }
 async function api(path, body) {
+  if (DEMO_MODE) throw Error('Esta función está disponible en la versión local de ReadLingo.');
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 65000);
   try {
@@ -877,32 +879,38 @@ $('paste-form').addEventListener('submit', event => {
   }
 });
 $('import-button').addEventListener('click', () => $('file-input').click());
+async function importReading(file) {
+  if (file.size > 10 * 1024 * 1024) throw Error('El archivo supera el límite de 10 MB.');
+  if (/\.txt$/i.test(file.name)) {
+    let text;
+    try {
+      text = new TextDecoder('utf-8', {fatal: true}).decode(await file.arrayBuffer());
+    } catch (error) {
+      throw Error('Guarda el archivo TXT con codificación UTF-8.');
+    }
+    if (text.includes('\u0000')) throw Error('El archivo no parece texto UTF-8.');
+    addBook(file.name.replace(/\.txt$/i, ''), text);
+    return;
+  }
+  if (DEMO_MODE) throw Error('En esta demo puedes importar TXT o pegar texto. EPUB está disponible en la versión local.');
+  if (!/\.epub$/i.test(file.name)) throw Error('Importa un archivo TXT o EPUB sin DRM.');
+  const result = await api('/api/import', {filename: file.name, data: toBase64(await file.arrayBuffer())});
+  if (typeof result.text !== 'string') throw Error('El servidor no devolvió texto utilizable.');
+  addBook(result.title || file.name, result.text);
+}
 $('file-input').addEventListener('change', async () => {
   const file = $('file-input').files[0];
   $('file-input').value = '';
   if (!file) return;
-  if (file.size > 10 * 1024 * 1024) {
-    notify('El archivo supera el límite de 10 MB.', true);
-    return;
-  }
-  if (!/\.(txt|epub)$/i.test(file.name)) {
-    notify('Importa un archivo TXT o EPUB sin DRM.', true);
-    return;
-  }
   $('import-button').disabled = true;
   $('import-button').textContent = 'Importando…';
   try {
-    const result = await api('/api/import', {
-      filename: file.name,
-      data: toBase64(await file.arrayBuffer())
-    });
-    if (typeof result.text !== 'string') throw Error('El servidor no devolvió texto utilizable.');
-    addBook(result.title || file.name, result.text);
+    await importReading(file);
   } catch (error) {
     notify(error.message || 'No se pudo importar el libro.', true);
   } finally {
     $('import-button').disabled = false;
-    $('import-button').textContent = '＋ Importar libro';
+    $('import-button').textContent = DEMO_MODE ? '＋ Importar TXT' : '＋ Importar libro';
   }
 });
 $('export-data').addEventListener('click', downloadProgress);
@@ -913,7 +921,7 @@ $('restore-input').addEventListener('change', async () => {
   if (!file) return;
   $('restore-data').disabled = true;
   try {
-    if (file.size > 64 * 1024 * 1024) throw Error('El respaldo supera el límite de 32 MB.');
+    if (file.size > 64 * 1024 * 1024) throw Error('El respaldo supera el límite de 64 MB.');
     const text = await file.text();
     const candidate = validateBackup(JSON.parse(text));
     if (!confirm(`¿Restaurar ${candidate.books.length} lecturas importadas y ${Object.keys(candidate.vocab).length} palabras? Reemplazará tu progreso actual. Exporta una copia antes de continuar.`)) return;
@@ -952,7 +960,14 @@ load();
 renderReader();
 populateVoices();
 if ('speechSynthesis' in window) window.speechSynthesis.addEventListener('voiceschanged', populateVoices);
-api('/api/config').then(value => {
+if (DEMO_MODE) {
+  $('demo-notice').hidden = false;
+  $('file-input').accept = '.txt';
+  $('import-button').textContent = '＋ Importar TXT';
+  $('import-help').textContent = 'Importa un TXT UTF-8 o pega un texto que tengas derecho a utilizar. EPUB está disponible en la versión local.';
+  $('assessment-mode').textContent = 'Grabación local: escucha y compara. Esta demo no envía audio ni ofrece evaluación automática. Azure está disponible en la versión local.';
+  $('assessment-controls').hidden = true;
+} else api('/api/config').then(value => {
   config = {
     translation: value.translation === true,
     pronunciation: value.pronunciation === true

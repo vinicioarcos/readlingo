@@ -1,12 +1,16 @@
 const { chromium } = require('playwright');
 const assert = require('node:assert/strict');
 const fs=require('node:fs');
+const baseURL=process.env.READLINGO_BASE_URL || 'http://127.0.0.1:8765';
+const demo=process.env.READLINGO_DEMO==='1';
 fs.mkdirSync('artifacts',{recursive:true});
 (async()=>{
  const browser=await chromium.launch({headless:true,channel:process.env.READLINGO_BROWSER_CHANNEL || undefined,args:['--use-fake-ui-for-media-stream','--use-fake-device-for-media-stream']});
  const context=await browser.newContext({viewport:{width:1440,height:1100},permissions:['microphone']});
- const page=await context.newPage(); const errors=[]; page.on('pageerror',e=>errors.push(e.message));
- await page.goto('http://127.0.0.1:8765');
+ const page=await context.newPage(); const errors=[]; const apiRequests=[];
+ page.on('pageerror',e=>errors.push(e.message));
+ page.on('request',request=>{if(new URL(request.url()).pathname.startsWith('/api/')) apiRequests.push(request.url());});
+ await page.goto(baseURL);
  await page.locator('.word').first().waitFor();
  await page.getByRole('button',{name:'Consultar morning',exact:true}).click();
  assert.match(await page.locator('#word-meaning').innerText(),/mañana/);
@@ -27,6 +31,20 @@ fs.mkdirSync('artifacts',{recursive:true});
  await page.locator('#file-input').setInputFiles({name:'Lectura.txt',mimeType:'text/plain',buffer:Buffer.from('A fresh morning.\n\nA new garden.')});
  await page.waitForFunction(()=>document.getElementById('book-title').textContent==='Lectura');
  assert.match(await page.locator('#passage').innerText(),/fresh morning/);
+ if(demo){
+  assert.equal(await page.locator('html').getAttribute('data-runtime'),'demo');
+  const intactBook=await page.evaluate(()=>localStorage.getItem('readlingo.v1'));
+  await page.locator('#file-input').setInputFiles({name:'Unsupported.epub',mimeType:'application/epub+zip',buffer:Buffer.from('not an EPUB')});
+  await page.waitForFunction(()=>/EPUB/.test(document.getElementById('status').textContent));
+  assert.equal(await page.evaluate(()=>localStorage.getItem('readlingo.v1')),intactBook);
+  await page.locator('#file-input').setInputFiles({name:'Unsafe.txt',mimeType:'text/plain',buffer:Buffer.from('<script>window.readlingoInjected=true</script>\n\n<img src=x onerror="window.readlingoInjected=true"> A café morning.')});
+  await page.waitForFunction(()=>document.getElementById('book-title').textContent==='Unsafe');
+  assert.equal(await page.evaluate(()=>window.readlingoInjected),undefined);
+  assert.equal(await page.locator('#passage script, #passage img').count(),0);
+  await page.locator('#next').click();
+  assert.match(await page.locator('#passage').innerText(),/café morning/);
+  await page.locator('.shelf-book').filter({has:page.locator('strong',{hasText:/^Lectura$/})}).click();
+ }
  const beforeBackup=await page.evaluate(()=>JSON.parse(localStorage.getItem('readlingo.v1')));
  const downloadPromise=page.waitForEvent('download');
  await page.locator('#export-data').click();
@@ -64,6 +82,7 @@ fs.mkdirSync('artifacts',{recursive:true});
  assert.equal(overflow,false);
  await page.screenshot({path:'artifacts/mobile.png',fullPage:true});
  assert.deepEqual(errors,[]);
- console.log(JSON.stringify({result:'PASS',flows:['dictionary','save vocabulary','review','navigation persistence','meaning source persistence','TXT import','backup download reset restore roundtrip','invalid backup preserves state','fake microphone recording','WAV conversion','unconfigured assessment hidden','mobile no overflow'],wav,errors}));
+ if(demo) assert.deepEqual(apiRequests,[]);
+ console.log(JSON.stringify({result:'PASS',baseURL,demo,flows:['dictionary','save vocabulary','review','navigation persistence','meaning source persistence','TXT import','backup download reset restore roundtrip','invalid backup preserves state','fake microphone recording','WAV conversion','unconfigured assessment hidden','mobile no overflow',...(demo?['EPUB rejection preserves state','UTF-8 TXT and HTML remain inert','no API requests']:[])],wav,errors,apiRequests}));
  await browser.close();
 })().catch(e=>{console.error(e);process.exit(1)});

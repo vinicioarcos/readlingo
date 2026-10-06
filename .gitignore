@@ -11,4 +11,6 @@ recordings/
 *.webm
 *.epub
 artifacts/
+dist/
+.vercel/
 .DS_Store

@@ -2,6 +2,12 @@
 
 Lee en inglés, consulta vocabulario, escucha y practica tu voz. Proyecto editable en VS Code con agentes de desarrollo y subagentes. Primera entrega local: 2026-10-06.
 
+## Demo web en Vercel
+
+La demo permite leer, pegar texto, importar TXT UTF-8, guardar palabras, repasar, escuchar, grabarse localmente y exportar/restaurar respaldos. EPUB y Azure están disponibles únicamente con el servidor local. No hay cuentas ni sincronización: el progreso se conserva por navegador y dirección del sitio. Los TXT se leen en tu navegador; la demo no envía libros ni audio a un backend. Algunas voces del sistema pueden usar servicios de voz externos.
+
+Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con tres archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y las políticas del sitio bloquean conexiones API. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
+
 ## Inicio en Windows
 1. Descomprime ReadLingo_VSCode.zip en una carpeta propia, por ejemplo `C:\1.-CODIGO\ReadLingo`.
 2. Abre la carpeta que contiene este README y server.py en VS Code.

@@ -7,7 +7,7 @@ const path=require('node:path');
 const root=path.resolve(__dirname,'..');
 const code=fs.readFileSync(path.join(root,'web/app.js'),'utf8');
 const html=fs.readFileSync(path.join(root,'web/index.html'),'utf8');
-function harness(saved=null){
+function harness(saved=null,demo=false){
  class Element {
   constructor(){this.children=[];this.textContent='';this.dataset={};this.value='';this.events={};this.hidden=false;this.className='';this.classList={add:()=>{},remove:()=>{},toggle:()=>{}};}
   append(...items){this.children.push(...items)}
@@ -21,12 +21,12 @@ function harness(saved=null){
  const ids=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
  let persisted=saved;
  const context=vm.createContext({
-  document:{getElementById:id=>{assert.ok(ids[id],`Missing HTML id: ${id}`);return ids[id]},createElement:()=>new Element(),createTextNode:text=>({textContent:text}),querySelectorAll:()=>[],addEventListener:()=>{}},
+  document:{documentElement:{dataset:{runtime:demo?'demo':'local'}},getElementById:id=>{assert.ok(ids[id],`Missing HTML id: ${id}`);return ids[id]},createElement:()=>new Element(),createTextNode:text=>({textContent:text}),querySelectorAll:()=>[],addEventListener:()=>{}},
   window:{addEventListener:()=>{}},
   localStorage:{getItem:()=>persisted,setItem:(k,v)=>{persisted=v}},
   setTimeout:()=>0,clearTimeout:()=>{},setInterval:()=>0,clearInterval:()=>{},
   fetch:async()=>({ok:true,json:async()=>({translation:false,pronunciation:false})}),
-  AbortController,URL,Blob,console,confirm:()=>true,
+  AbortController,URL,Blob,TextDecoder,console,confirm:()=>true,
   btoa:s=>Buffer.from(s,'binary').toString('base64')
  });
  vm.runInContext(code,context);
@@ -101,4 +101,18 @@ test('invalid or unpersistable backup leaves current data intact',()=>{
  h.context.bad=bad;assert.throws(()=>h.run('restoreProgress(bad)'));assert.equal(h.data(),before);assert.equal(h.run('state.vocab.morning.meaning'),JSON.parse(before).vocab.morning.meaning);
  }
  h.context.backup=before;h.run("localStorage.setItem=()=>{throw Error('QuotaExceededError')}");assert.throws(()=>h.run('restoreProgress(backup)'));assert.equal(h.data(),before);
+});
+
+test('demo imports UTF8 TXT without API and rejects unsafe or unsupported files',async()=>{
+ const h=harness(null,true);let calls=0;h.context.fetch=()=>{calls++;throw Error('Unexpected API')};
+ const file=(name,bytes)=>({name,size:bytes.length,arrayBuffer:async()=>new Uint8Array(bytes).buffer});
+ h.context.file=file('Reading.txt',Buffer.from('A morning. <script>window.injected=true</script>'));
+ await h.run('importReading(file)');assert.equal(calls,0);assert.equal(h.run('state.books.length'),1);
+ assert.match(h.run('currentBook().text'),/<script>/);assert.equal(h.context.window.injected,undefined);
+ const intact=h.data();
+ for(const bad of [file('book.epub',[1]),file('bad.txt',[0xff]),file('nul.txt',[65,0,66]),{name:'huge.txt',size:11*1024*1024}]){
+ h.context.file=bad;await assert.rejects(h.run('importReading(file)'));assert.equal(h.data(),intact);
+ }
+ assert.equal(calls,0);assert.equal(h.ids['demo-notice'].hidden,false);assert.equal(h.ids['file-input'].accept,'.txt');
+ assert.equal(h.ids['assessment-controls'].hidden,true);
 });

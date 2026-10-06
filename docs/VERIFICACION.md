@@ -2,6 +2,14 @@
 
 Estado: MVP local implementado. No desplegado. Sin credenciales reales de servicios externos.
 
+## Demo estática Vercel · 2026-10-06
+
+Validación antes de despliegue: 9 pruebas frontend PASS y sintaxis PASS. Backend local: 17 PASS y 1 SKIP por privilegio Windows de enlace simbólico. Compilación Node sin dependencias: sólo index.html/app.js/styles.css en dist; modo demo explícito.
+
+Revisión independiente DQ01 y smoke real en Chrome/Edge contra http://127.0.0.1:8766: PASS, 15 flujos, cero errores de página y cero solicitudes API. TXT UTF-8 con HTML se presenta como texto sin ejecución; EPUB rechazado sin cambiar progreso. Exportación/borrado/restauración y rechazo de respaldo inválido aprobados. Grabación simulada y WAV PCM16 mono 16 kHz; escritorio y ancho móvil sin desbordamiento. Smoke contra servidor local original también PASS, 12 flujos. Hardware y Azure real siguen pendientes.
+
+CSP y HTTPS requieren comprobación en el despliegue; http.server local no aplica headers de Vercel. Publicación web en curso; T020 no se declara completada antes de la comprobación remota.
+
 ## Entrega local completada · 2026-10-06
 
 Resultados actuales (sustituyen los pendientes históricos de navegador y Git):

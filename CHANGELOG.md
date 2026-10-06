@@ -1,5 +1,8 @@
 # Historial
 
+## 0.2.0 · 2026-10-06
+Demo estática para Vercel con publicación limitada a tres archivos, aviso de alcance e importación TXT local UTF-8. EPUB y Azure se conservan en versión local. CSP bloquea conexiones API en la demo. Pruebas de importación inválida y ausencia de API añadidas; compilación incluida en CI.
+
 ## 0.1.1 · 2026-10-06
 Restauración de respaldos JSON con validación y protección ante cuota, origen de significado persistente y traducción visible conservada al guardar. Corregidos foco y controles móviles. Ocho pruebas frontend aprobadas y recorrido Chrome/Edge aprobado con micrófono simulado; 17 backend aprobadas y una omitida por permisos de Windows. Revisión independiente completada. Azure real y hardware siguen pendientes.
 

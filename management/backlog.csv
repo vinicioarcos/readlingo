@@ -18,3 +18,4 @@ T016,extension,PDF y OCR,Lector,pending,Extraccion legible con aviso de errores 
 T017,investigacion,Piloto educativo,Pedagogia,pending,Protocolo consentimiento pretest postest y recuerdo diferido
 T018,local,Conservar y mostrar origen del significado,Lector,verified_local,Fuente visible en tarjeta vocabulario y repaso tras guardar y recargar
 T019,local,Resolver prioridad de traduccion al guardar vocabulario,Lector,verified_local,Significado visible y guardado consistente al traducir guardar seleccionar y recargar con prueba de comportamiento
+T020,demo,Demostracion estatica HTTPS en Vercel,Desarrollo,in_progress,Ruta principal funcional TXT local sin API respaldo y audio local sin publicar archivos del servidor

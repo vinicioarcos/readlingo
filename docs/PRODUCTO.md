@@ -23,5 +23,9 @@ Sesión sugerida de 10 minutos: leer 4, escuchar 2, repetir 2, repasar 2. Es una
 
 La pronunciación automática es retroalimentación orientativa. En piloto real contrastar con dos evaluadores humanos, ruido, dispositivos y variedades del español; valorar inteligibilidad, no eliminación del acento. No derivar nivel CEFR a partir de una nota de pronunciación.
 
+## Demo web
+
+Versión de demostración en HTTPS con lectura, vocabulario, repaso, TXT y grabación local. Aceptación: abrir `/`, importar TXT sin llamadas API, conservar vocabulario y respaldo, rechazar EPUB con explicación y no publicar archivos del repositorio. Se muestra un aviso permanente de límites y almacenamiento local. No incluye evaluación Azure, cuentas, sincronización ni backend público.
+
 ## Fuera de la versión local
 Cuentas, sincronización, catálogo comercial, pagos, OCR/PDF, EPUB con DRM, conversación abierta con tutor LLM, PWA offline completa y despliegue público. Ver backlog para evolución. El motor de tutor autónomo no está implementado; los agentes incluidos construyen y revisan el software.
