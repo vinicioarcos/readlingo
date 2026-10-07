@@ -6,7 +6,7 @@ const base=process.env.READLINGO_BASE_URL||'http://127.0.0.1:8766';
  try {
   const page=await browser.newPage();const errors=[];const api=[];
   page.on('pageerror',e=>errors.push(e.message));
-  page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/'))api.push(r.url());});
+  page.on('request',r=>{if(new URL(r.url()).pathname.startsWith('/api/') && !(new URL(r.url()).pathname==='/api/config' && r.method()==='GET'))api.push(r.url());});
   await page.goto(base);await page.evaluate(()=>appReady);
   await page.locator('#file-input').setInputFiles({name:'Diccionario.txt',mimeType:'text/plain',buffer:Buffer.from('The prince saw a rose. He drew a sheep and couldn\u2019t sleep. Zqxvunknown constructor.')});
   await page.waitForFunction(()=>document.getElementById('book-title').textContent==='Diccionario');

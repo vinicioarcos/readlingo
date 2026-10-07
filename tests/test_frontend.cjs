@@ -20,10 +20,11 @@ function harness(saved=null,demo=false){
  }
  const ids=Object.fromEntries([...html.matchAll(/id="([^"]+)"/g)].map(m=>[m[1],new Element()]));
  let persisted=saved;
+ const extraStorage=new Map();
  const context=vm.createContext({
   document:{documentElement:{dataset:{runtime:demo?'demo':'local'}},getElementById:id=>{assert.ok(ids[id],`Missing HTML id: ${id}`);return ids[id]},createElement:()=>new Element(),createTextNode:text=>({textContent:text}),querySelectorAll:()=>[],addEventListener:()=>{}},
   window:{addEventListener:()=>{}},
-  localStorage:{getItem:()=>persisted,setItem:(k,v)=>{persisted=v}},
+  localStorage:{getItem:k=>k==='readlingo.v1'?persisted:extraStorage.get(k)||null,setItem:(k,v)=>{if(k==='readlingo.v1')persisted=v;else extraStorage.set(k,v)}},
   setTimeout:()=>0,clearTimeout:()=>{},setInterval:()=>0,clearInterval:()=>{},
   fetch:async()=>({ok:true,json:async()=>({translation:false,pronunciation:false})}),
   AbortController,URL,Blob,TextDecoder,console,confirm:()=>true,
@@ -157,4 +158,22 @@ test('new glossary fills a previously pending saved meaning',async()=>{
  assert.match(h.ids['word-meaning'].textContent,/zorro/);
  assert.match(h.ids['word-source'].textContent,/Diccionario local/);
  await h.run("storeWord('learning')");assert.match(JSON.parse(h.data()).vocab.fox.meaning,/zorro/);
+});
+
+test('translation cache bounds retain new result without changing vocabulary',async()=>{
+ const h=harness(null,true);await h.ready();
+ h.context.existing=Object.fromEntries(Array.from({length:500},(_,i)=>['word'+String.fromCharCode(97+Math.floor(i/26),97+i%26),{translation:'glosa',source:'Azure Translator'}]));
+ h.run("localStorage.setItem(TRANSLATION_CACHE_KEY,JSON.stringify(existing))");
+ assert.equal(h.run("cacheTranslation('newword',{translation:'nueva glosa',source:'Azure Translator'})"),true);
+ const cache=JSON.parse(h.run('localStorage.getItem(TRANSLATION_CACHE_KEY)'));
+ assert.equal(Object.keys(cache).length,500);assert.equal(cache.newword.translation,'nueva glosa');
+ assert.equal(h.run('Object.keys(state.vocab).length'),0);
+});
+test('translation cache corruption after page load remains recoverable',async()=>{
+ const h=harness(null,true);await h.ready();
+ const raw=JSON.stringify({word:{translation:'x',source:'unknown'}});h.context.raw=raw;
+ h.run('localStorage.setItem(TRANSLATION_CACHE_KEY,raw)');
+ assert.equal(h.run("cacheTranslation('newword',{translation:'new',source:'Azure Translator'})"),false);
+ assert.equal(h.run('localStorage.getItem(TRANSLATION_CACHE_KEY)'),raw);
+ assert.equal(h.run('translationCache.newword.translation'),'new');
 });

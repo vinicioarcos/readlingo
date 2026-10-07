@@ -32,3 +32,6 @@ Cuentas, sincronización, catálogo comercial, pagos, OCR/PDF, EPUB con DRM, con
 
 ## Diccionario local ampliado
 Al pulsar una palabra de una lectura importada se muestra su glosa española disponible y origen en Tu diccionario. Glosas generales orientativas con formas explícitas; no desambiguación de oraciones ni cobertura universal. Las palabras guardadas conservan su significado; entradas antes pendientes pueden usar la nueva glosa. No se envía texto a terceros ni se inventa IPA.
+
+## Traduccion F0 opcional
+Usuario personal: consulta palabra ausente mediante boton y codigo privado. Antes de pulsar se explica envio de palabra a Azure. Guardarresultado automaticamente en cache local no marca palabra aprendida ni modifica el libro. Aprender la agrega al repaso y al respaldo. Sin configuracion real se muestra pendiente y nunca se llama al proveedor. No se promete traduccion contextual de palabra aislada, disponibilidad universal ni costo0 si se configura un SKU pago.

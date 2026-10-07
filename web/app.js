@@ -3,6 +3,45 @@
 const $ = id => document.getElementById(id);
 const STORAGE_KEY = 'readlingo.v1';
 const DEMO_MODE = document.documentElement?.dataset.runtime === 'demo';
+const CLOUD_TRANSLATION = document.documentElement?.dataset.translation === 'server';
+const TRANSLATION_CACHE_KEY = 'readlingo.translations.v1';
+let translationCache = Object.create(null);
+let translationCacheBlocked = false;
+try {
+  const raw = localStorage.getItem(TRANSLATION_CACHE_KEY);
+  if (raw) {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed) || Object.keys(parsed).length > 500) throw Error('Invalid translation cache');
+    for (const [word, value] of Object.entries(parsed)) {
+      if (!validKey(word) || !value || typeof value.translation !== 'string' || !value.translation.trim() || value.translation.length > 2000 || value.source !== 'Azure Translator') throw Error('Invalid translation cache');
+      translationCache[word] = {translation: value.translation, source: value.source};
+    }
+  }
+} catch { translationCache = Object.create(null); translationCacheBlocked = true; }
+function cacheTranslation(word, result) {
+  if (result.source !== 'Azure Translator') return false;
+  translationCache[word] = {translation: result.translation, source: result.source};
+  const keys = Object.keys(translationCache);
+  if (keys.length > 500) delete translationCache[keys[0]];
+  try {
+    if (translationCacheBlocked) throw Error('Cache requires recovery');
+    // Merge unrelated words written by another tab before committing this word.
+    const raw = localStorage.getItem(TRANSLATION_CACHE_KEY);
+    if (raw) {
+      const durable = JSON.parse(raw);
+      if (!durable || typeof durable !== 'object' || Array.isArray(durable) || Object.keys(durable).length > 500) throw Error('Invalid cache');
+      for (const [key, value] of Object.entries(durable)) {
+        if (!validKey(key) || value?.source !== 'Azure Translator' || typeof value.translation !== 'string' || !value.translation.trim() || value.translation.length > 2000) throw Error('Invalid cache');
+        if (key !== word && !Object.hasOwn(translationCache, key)) translationCache[key] = {translation: value.translation, source: value.source};
+      }
+    }
+    delete translationCache[word];
+    translationCache[word] = {translation: result.translation, source: result.source};
+    const bounded = Object.fromEntries(Object.entries(translationCache).slice(-500));
+    localStorage.setItem(TRANSLATION_CACHE_KEY, JSON.stringify(bounded));
+    return true;
+  } catch { return false; }
+}
 const SEED_BOOKS = [{
   id: 'garden',
   title: 'A Garden in the City',
@@ -306,15 +345,18 @@ function selectWord(word, button) {
   const entry = DICTIONARY[selectedWord];
   const saved = Object.hasOwn(state.vocab, selectedWord) ? state.vocab[selectedWord] : null;
   const savedHasMeaning = saved && saved.meaning !== 'Significado pendiente de consultar';
+  const cached = translationCache[selectedWord];
   $('selected-word').textContent = word;
   $('word-ipa').textContent = entry?.[1] || saved?.ipa || '';
-  $('word-meaning').textContent = (savedHasMeaning ? saved.meaning : '') || entry?.[0] || 'Esta palabra todavía no está en el glosario local.';
-  $('word-source').textContent = savedHasMeaning ? (saved.source || 'Origen no registrado') : entry ? dictionarySource(selectedWord) : 'Sin significado disponible';
+  $('word-meaning').textContent = (savedHasMeaning ? saved.meaning : '') || entry?.[0] || cached?.translation || 'Esta palabra todavía no está en el glosario local.';
+  $('word-source').textContent = savedHasMeaning ? (saved.source || 'Origen no registrado') : entry ? dictionarySource(selectedWord) : cached ? cached.source : 'Sin significado disponible';
+  if (!savedHasMeaning && !entry && cached) $('word-meaning').dataset.translatedWord = selectedWord;
+  $('translation-status').textContent = cached ? 'Hay una traducción guardada en este navegador; puedes reutilizarla sin otra consulta.' : '';
   $('word-listen').disabled = false;
   $('word-save').disabled = false;
   $('word-known').disabled = false;
   $('word-save').textContent = saved?.status === 'learning' ? '✓ Guardada' : '＋ Aprender';
-  $('word-translate').hidden = !config.translation;
+  $('word-translate').hidden = !config.translation && !cached;
   $('word-translate').disabled = false;
 }
 async function storeWord(status) {
@@ -661,16 +703,14 @@ function toBase64(buffer) {
   for (let start = 0; start < bytes.length; start += 32768) binary += String.fromCharCode(...bytes.subarray(start, start + 32768));
   return btoa(binary);
 }
-async function api(path, body) {
-  if (DEMO_MODE) throw Error('Esta función está disponible en la versión local de ReadLingo.');
+async function api(path, body, extraHeaders = {}) {
+  if (DEMO_MODE && !(CLOUD_TRANSLATION && ['/api/config', '/api/translate'].includes(path))) throw Error('Esta función está disponible en la versión local de ReadLingo.');
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 65000);
   try {
     const response = await fetch(path, {
       method: body ? 'POST' : 'GET',
-      headers: body ? {
-        'Content-Type': 'application/json'
-      } : {},
+      headers: {...(body ? {'Content-Type': 'application/json'} : {}), ...extraHeaders},
       body: body ? JSON.stringify(body) : undefined,
       signal: controller.signal
     });
@@ -744,19 +784,28 @@ function renderAssessment(result) {
   });
 }
 async function translate() {
-  if (!config.translation || !selectedWord) return;
+  if (!selectedWord || (!config.translation && !translationCache[selectedWord])) return;
   const word = selectedWord;
   const token = ++translationToken;
   $('word-translate').disabled = true;
   try {
-    const result = await api('/api/translate', {
-      text: word
-    });
+    if (!validKey(word)) throw Error('Selecciona una sola palabra de la lectura.');
+    let result = translationCache[word];
+    const reused = Boolean(result);
+    let cacheSaved = true;
+    if (!result) {
+      const access = $('translation-access').value.trim();
+      if (config.requiresAccess && access.length < 32) throw Error('Introduce tu código personal de traducción. No es la clave de Azure.');
+      result = await api('/api/translate', {text: word, consent: true}, config.requiresAccess ? {Authorization: `Bearer ${access}`} : {});
+      if (typeof result.translation !== 'string' || !result.translation.trim() || result.translation.length > 2000) throw Error('Traducción no disponible.');
+      cacheSaved = cacheTranslation(word, result);
+    }
     if (token !== translationToken) return;
     if (typeof result.translation !== 'string') throw Error('Traducción no disponible.');
     $('word-meaning').textContent = result.translation;
     $('word-meaning').dataset.translatedWord = word;
     $('word-source').textContent = typeof result.source === 'string' ? result.source.slice(0, 120) : 'Traducción en línea · origen no registrado';
+    $('translation-status').textContent = reused ? 'Traducción reutilizada; no se envió otra consulta.' : cacheSaved ? 'Traducción guardada en este navegador para reutilizarla.' : 'Traducción disponible sólo en esta sesión. No se pudo guardar la consulta; usa Aprender para conservarla con tu vocabulario.';
     if (state.vocab[word]) {
       state.vocab[word].meaning = result.translation;
       state.vocab[word].source = $('word-source').textContent;
@@ -1033,14 +1082,20 @@ if (DEMO_MODE) {
   $('import-help').textContent = 'Importa TXT UTF-8 o EPUB sin DRM de una edición en inglés. Se conserva el texto original, sin traducción automática ni ilustraciones. El archivo se procesa en tu navegador.';
   $('assessment-mode').textContent = 'Grabación local: escucha y compara. Esta demo no envía audio ni ofrece evaluación automática. Azure está disponible en la versión local.';
   $('assessment-controls').hidden = true;
-} else api('/api/config').then(value => {
+}
+const configReady = (!DEMO_MODE || CLOUD_TRANSLATION) ? api('/api/config').then(value => {
   config = {
     translation: value.translation === true,
-    pronunciation: value.pronunciation === true
+    pronunciation: !DEMO_MODE && value.pronunciation === true,
+    requiresAccess: value.requiresAccess === true,
+    wordOnly: value.wordOnly === true
   };
-  $('word-translate').hidden = !config.translation || !selectedWord;
+  $('word-translate').hidden = (!config.translation && !translationCache[selectedWord]) || !selectedWord;
+  $('translation-access-controls').hidden = !config.translation || !config.requiresAccess;
+  $('translation-consent').hidden = !config.translation;
+  $('translation-service-status').textContent = config.translation ? 'Traducción disponible al pulsar Consultar. Los resultados se guardan en este navegador.' : 'Traducción en línea pendiente de configurar. El diccionario local sigue disponible.';
   $('assessment-controls').hidden = !config.pronunciation;
-  $('sentence-translate').hidden = !config.translation;
+  $('sentence-translate').hidden = !config.translation || config.wordOnly;
   $('assessment-mode').textContent = config.pronunciation ? 'Graba hasta 20 segundos. Evaluación en inglés de EE. UU. El audio solo se envía a Azure cuando das tu consentimiento y pulsas Evaluar.' : 'Grabación local: escucha y compara. Sin credenciales configuradas no hay evaluación fonética automática.';
-}).catch(() => notify('Los servicios en línea no están disponibles. Puedes leer, escuchar y guardar palabras localmente.'));
+}).catch(() => { $('translation-service-status').textContent = 'No se pudo comprobar el servicio de traducción. Puedes consultar el diccionario local.'; }) : Promise.resolve();
 setInterval(updateCounts, 60000);

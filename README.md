@@ -4,11 +4,11 @@ Lee en inglés, consulta vocabulario, escucha y practica tu voz. Proyecto editab
 
 ## Demo web en Vercel
 
-La demo permite leer, pegar texto, importar TXT UTF-8 y EPUB sin DRM, guardar palabras, repasar, escuchar, grabarse localmente y exportar/restaurar respaldos. Azure está disponible únicamente con el servidor local. No hay cuentas ni sincronización: el progreso se conserva por navegador y dirección del sitio. Los TXT y EPUB se leen en tu navegador; la demo no envía libros ni audio a un backend. Algunas voces del sistema pueden usar servicios de voz externos.
+La demo permite leer, pegar texto, importar TXT UTF-8 y EPUB sin DRM, guardar palabras, repasar, escuchar, grabarse localmente y exportar/restaurar respaldos. La consulta de palabras a Azure en Vercel requiere configurar un recurso F0 y un codigo personal; permanece desactivada hasta entonces. La evaluacion de voz solo esta en el servidor local. No hay cuentas ni sincronización: el progreso se conserva por navegador y dirección del sitio. Los TXT y EPUB se leen en tu navegador; la demo no envía libros ni audio a un backend. Algunas voces del sistema pueden usar servicios de voz externos.
 
 Abrir: https://readlingo.arcdata.app (también https://readlingo-eight.vercel.app). Usa siempre el mismo dominio para conservar tu progreso; exporta/restaura el respaldo si cambias de dirección.
 
-Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con seis archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y las políticas del sitio bloquean conexiones API. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
+Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con seis archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y la politica del sitio permite API del mismo origen; Azure se consulta solo desde el backend autenticado. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
 
 ## Inicio en Windows
 1. Descomprime ReadLingo_VSCode.zip en una carpeta propia, por ejemplo `C:\1.-CODIGO\ReadLingo`.
@@ -111,3 +111,6 @@ Haz clic o toca una palabra: Tu diccionario muestra la glosa EN-ES disponible y 
 
 ## Voz preferida
 Al elegir una voz inglesa se guarda automaticamente para este navegador y dominio. Se recupera al recargar; si no esta disponible se usa la voz del dispositivo sin borrar la preferencia. Elegir Voz inglesa del dispositivo vuelve al valor predeterminado. Preferencia separada de libros y respaldos; restablecer progreso no la borra.
+
+## Traduccion de palabras con Azure F0 en Vercel
+Preparada con boton explicito, codigo personal y resultados reutilizables del navegador. Se envia solo la palabra seleccionada, no el libro ni audio. El backend permanece desactivado sin configuracion completa. Lee docs/AZURE_F0.md para crear F0 y configurar variables privadas. No compartir claves en el chat. No se ha creado un recurso Azure ni probado traduccion real.
