@@ -1,5 +1,8 @@
 # Historial
 
+## 0.5.1 - 2026-10-07
+La voz inglesa elegida se recuerda al volver a abrir el mismo navegador y dominio. Conserva preferencia durante carga tardia o ausencia, recupera por URI o nombre/idioma y muestra fallos de guardado. Configuracion independiente de libros y respaldos.7escenarios por navegador Chrome/Edge aprobados en produccion con sintesis simulada;33tests Node existentes aprobados. T024 completada.
+
 ## 0.5.0 - 2026-10-06
 Diccionario local ampliado: 751 entradas originales y 796 claves combinadas con el glosario previo. Glosas EN-ES al seleccionar palabras importadas, fuente visible, contracciones y sentidos alternativos, sin enviar texto a terceros. Conserva significados guardados y completa marcadores pendientes al guardar. Node33pass, Chrome/Edge produccion12casos de diccionario y17del lector por navegador. T023 completada; cobertura limitada y revision docente pendiente.
 
