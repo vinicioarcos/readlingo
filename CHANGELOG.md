@@ -1,5 +1,8 @@
 # Historial
 
+## 0.6.0 - 2026-10-07
+Infraestructura de traduccion privada de palabras en Vercel, desactivada hasta configurar recurso F0 real y codigo personal. Boton con consentimiento, cache local hasta500 y fuente al guardar vocabulario; ninguna consulta al seleccionar. Backend Node sin dependencias, HTTPS/origen/Bearer/limites/timeout/errores sanitizados.44pruebas Node por suites y CI aprobadas;Chrome/Edge7grupos simulados de traduccion y17flujos lector real por navegador pasan. Azure real pendiente;T025 deployed_disabled_pending_F0. Guia docs/AZURE_F0.md.
+
 ## 0.5.1 - 2026-10-07
 La voz inglesa elegida se recuerda al volver a abrir el mismo navegador y dominio. Conserva preferencia durante carga tardia o ausencia, recupera por URI o nombre/idioma y muestra fallos de guardado. Configuracion independiente de libros y respaldos.7escenarios por navegador Chrome/Edge aprobados en produccion con sintesis simulada;33tests Node existentes aprobados. T024 completada.
 
