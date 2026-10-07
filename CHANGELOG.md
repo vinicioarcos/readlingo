@@ -1,5 +1,8 @@
 # Historial
 
+## 0.5.0 - 2026-10-06
+Diccionario local ampliado: 751 entradas originales y 796 claves combinadas con el glosario previo. Glosas EN-ES al seleccionar palabras importadas, fuente visible, contracciones y sentidos alternativos, sin enviar texto a terceros. Conserva significados guardados y completa marcadores pendientes al guardar. Node33pass, Chrome/Edge produccion12casos de diccionario y17del lector por navegador. T023 completada; cobertura limitada y revision docente pendiente.
+
 ## 0.4.0 ? 2026-10-06
 Persistencia local con IndexedDB y migraci?n no destructiva. Transacciones, combinaci?n entre pesta?as, avisos de escritura fallida, recuperaci?n de datos da?ados y protecci?n opcional del navegador. Restauraci?n bloquea interacci?n hasta confirmar el guardado. Libros y progreso sobreviven al reinicio en el mismo perfil y dominio; no hay sincronizaci?n entre dispositivos. Producci?n verificada en Chrome/Edge: 10 escenarios de persistencia y 17 del lector por navegador; CI aprobada. T022 completada.
 
