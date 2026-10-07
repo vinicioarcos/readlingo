@@ -15,6 +15,8 @@ Comprobaciones ejecutadas:
 
 Estas comprobaciones validan activación y rechazo de acceso sin código; no prueban la autenticación ante Azure, el SKU real ni la calidad de traducción. Las variables Sensitive no se descargaron ni se imprimieron.
 
-Prueba pendiente: abrir el dominio principal, seleccionar hello, introducir el código privado de ReadLingo y solicitar la traducción. Registrar resultado y origen Azure Translator sin incluir credenciales. Volver a consultar tras recargar para comprobar reutilización de la caché. No declarar esta prueba aprobada hasta ejecutarla.
+Confirmación del usuario el 2026-10-07: tras solicitar la prueba de hello con su código privado en el dominio principal, respondió «Si traduce». Se registra como confirmación del usuario de funcionamiento de traducción real, no como una prueba ejecutada u observada directamente por el asistente. No se recibió el texto de respuesta ni una captura del origen, y no se compartieron credenciales.
 
-Estado T025: deployed_enabled_pending_live_translation. Las pruebas previas con proveedores simulados siguen siendo evidencia de contratos, no de una consulta real.
+Pendiente: comprobar reutilización de caché tras recargar con el proveedor real y revisar una muestra de calidad lingüística. La caché y los errores ya cuentan con pruebas de contrato simuladas; la confirmación actual no amplía esa evidencia.
+
+Estado T025: live_translation_confirmed_by_user. Las pruebas previas con proveedores simulados siguen siendo evidencia de contratos; la consulta real se confirma por reporte del usuario.

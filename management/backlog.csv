@@ -23,4 +23,4 @@ T021,demo,Importacion EPUB privada en navegador,Lector,verified_live_demo,EPUB i
 T022,demo,Persistencia robusta del dispositivo,Lector,verified_live_demo,IndexedDB migracion no destructiva reinicio de navegador concurrencia errores visibles y restauracion transaccional
 T023,demo,Ampliar diccionario local EN ES,Lector,verified_live_demo,Seleccionar palabra importada mostrar glosa y origen guardar recargar sin API con desconocidos honestos
 T024,demo,Conservar voz preferida,Voz,verified_live_demo,Seleccion recuperar tras recarga voces tardias ausentes y errores visibles sin persistir audio
-T025,produccion,Traduccion privada F0 por boton,Desarrollo,deployed_enabled_pending_live_translation,Configuracion activa en HTTPS y rechazo401 sin codigo verificados; consulta real a Azure pendiente de prueba con codigo privado
+T025,produccion,Traduccion privada F0 por boton,Desarrollo,live_translation_confirmed_by_user,Usuario confirma traduccion real; HTTPS configuracion acceso y contratos verificados; cache real y calidad linguistica pendientes
