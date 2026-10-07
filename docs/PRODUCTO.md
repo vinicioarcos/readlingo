@@ -29,3 +29,6 @@ Versión de demostración en HTTPS con lectura, vocabulario, repaso, TXT/EPUB y 
 
 ## Fuera de la versión local
 Cuentas, sincronización, catálogo comercial, pagos, OCR/PDF, EPUB con DRM, conversación abierta con tutor LLM, PWA offline completa y despliegue público. Ver backlog para evolución. El motor de tutor autónomo no está implementado; los agentes incluidos construyen y revisan el software.
+
+## Diccionario local ampliado
+Al pulsar una palabra de una lectura importada se muestra su glosa española disponible y origen en Tu diccionario. Glosas generales orientativas con formas explícitas; no desambiguación de oraciones ni cobertura universal. Las palabras guardadas conservan su significado; entradas antes pendientes pueden usar la nueva glosa. No se envía texto a terceros ni se inventa IPA.

@@ -23,7 +23,7 @@ const SEED_BOOKS = [{
   text: 'At the edge of the market, Elena compares two bags of coffee. One is cheaper; the other comes from a nearby cooperative. Her decision seems simple, yet it reflects a wider question: how do individual choices shape the communities in which we live?\n\nA lower price can help households stretch a limited budget. However, price alone does not reveal everything about a product. Working conditions, environmental costs, and the distribution of income may remain hidden. Economists study these trade-offs, but consumers rarely have complete information when they make a purchase.\n\nElena asks the seller how the cooperative shares its earnings. The answer does not remove every uncertainty, but it helps her make a more informed decision. Her purchase will not transform the entire economy. Still, understanding the consequences of a small choice is a useful place to begin.'
 }];
 // Curated English → Spanish entries. IPA transcriptions are broad, not accent scoring.
-const DICTIONARY = {
+const LOCAL_GLOSSARY = {
   garden: ['jardín', '/ˈɡɑːrdən/'],
   morning: ['mañana (parte del día)', '/ˈmɔːrnɪŋ/'],
   walks: ['camina', '/wɔːks/'],
@@ -93,6 +93,11 @@ const DICTIONARY = {
   consequences: ['consecuencias', '/ˈkɑːnsəkwensɪz/'],
   understanding: ['comprensión; comprendiendo', '/ˌʌndərˈstændɪŋ/']
 };
+const DICTIONARY = Object.freeze(Object.assign(Object.create(null), globalThis.ReadLingoDictionary || {}, LOCAL_GLOSSARY));
+function normalizeWord(word) { return word.toLowerCase().replaceAll('\u2019', "'"); }
+function dictionarySource(word) {
+  return Object.hasOwn(LOCAL_GLOSSARY, word) ? 'Glosario local curado' : 'Diccionario local - glosas orientativas';
+}
 let state = {
   version: 1,
   books: [],
@@ -266,9 +271,9 @@ function renderReader() {
       if (i % 2) {
         const word = create('button', 'word', token);
         word.type = 'button';
-        word.dataset.word = token.toLowerCase();
+        word.dataset.word = normalizeWord(token);
         word.setAttribute('aria-label', `Consultar ${token}`);
-        if (state.vocab[token.toLowerCase()]?.status === 'learning') word.classList.add('learned');
+        if (state.vocab[normalizeWord(token)]?.status === 'learning') word.classList.add('learned');
         word.addEventListener('click', () => selectWord(token, word));
         span.append(word);
       } else span.append(document.createTextNode(token));
@@ -293,17 +298,18 @@ function renderReader() {
   updateCounts();
 }
 function selectWord(word, button) {
-  selectedWord = word.toLowerCase();
+  selectedWord = normalizeWord(word);
   translationToken++;
   delete $('word-meaning').dataset.translatedWord;
   document.querySelectorAll('.word.selected').forEach(el => el.classList.remove('selected'));
   button?.classList.add('selected');
   const entry = DICTIONARY[selectedWord];
-  const saved = state.vocab[selectedWord];
+  const saved = Object.hasOwn(state.vocab, selectedWord) ? state.vocab[selectedWord] : null;
+  const savedHasMeaning = saved && saved.meaning !== 'Significado pendiente de consultar';
   $('selected-word').textContent = word;
   $('word-ipa').textContent = entry?.[1] || saved?.ipa || '';
-  $('word-meaning').textContent = saved?.meaning || entry?.[0] || 'Esta palabra todavía no está en el glosario local.';
-  $('word-source').textContent = saved?.source || (saved ? 'Origen no registrado' : entry ? 'Glosario local curado' : 'Sin significado disponible');
+  $('word-meaning').textContent = (savedHasMeaning ? saved.meaning : '') || entry?.[0] || 'Esta palabra todavía no está en el glosario local.';
+  $('word-source').textContent = savedHasMeaning ? (saved.source || 'Origen no registrado') : entry ? dictionarySource(selectedWord) : 'Sin significado disponible';
   $('word-listen').disabled = false;
   $('word-save').disabled = false;
   $('word-known').disabled = false;
@@ -317,7 +323,7 @@ async function storeWord(status) {
   const existing = state.vocab[word];
   const entry = DICTIONARY[selectedWord];
   state.vocab[selectedWord] = {
-    meaning: $('word-meaning').dataset.translatedWord === selectedWord ? $('word-meaning').textContent : existing?.meaning || entry?.[0] || 'Significado pendiente de consultar',
+    meaning: $('word-meaning').dataset.translatedWord === selectedWord ? $('word-meaning').textContent : (existing?.meaning !== 'Significado pendiente de consultar' ? existing?.meaning : '') || entry?.[0] || 'Significado pendiente de consultar',
     source: $('word-source').textContent,
     ipa: entry?.[1] || existing?.ipa || '',
     status,

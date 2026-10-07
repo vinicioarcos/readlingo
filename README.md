@@ -8,7 +8,7 @@ La demo permite leer, pegar texto, importar TXT UTF-8 y EPUB sin DRM, guardar pa
 
 Abrir: https://readlingo.arcdata.app (también https://readlingo-eight.vercel.app). Usa siempre el mismo dominio para conservar tu progreso; exporta/restaura el respaldo si cambias de dirección.
 
-Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con cinco archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y las políticas del sitio bloquean conexiones API. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
+Vercel ejecuta `node scripts/build_web.cjs` y publica sólo `dist/`, con seis archivos de interfaz. No instala dependencias ni inicia `server.py`. La compilación activa explícitamente el modo demo y las políticas del sitio bloquean conexiones API. Para una vista local de la demo, ejecuta la compilación y `python -m http.server 8766 --bind 127.0.0.1 --directory dist`.
 
 ## Inicio en Windows
 1. Descomprime ReadLingo_VSCode.zip en una carpeta propia, por ejemplo `C:\1.-CODIGO\ReadLingo`.
@@ -105,3 +105,6 @@ Usa Exportar mi progreso para descargar tus lecturas y palabras. Restaurar respa
 En la aplicación pulsa **Importar libro** y elige un archivo `.epub` sin DRM de una edición en inglés. La importación extrae texto siguiendo el orden de lectura del EPUB; no traduce el libro ni conserva ilustraciones o diseño. Luego puedes seleccionar palabras, escuchar con una voz inglesa y guardar el progreso. El archivo no se sube a Vercel ni a otro proveedor.
 
 Límites del importador del navegador: 10 MiB de archivo, 24 MiB de contenido declarado descomprimido, 1.500 entradas ZIP, 5 MiB por recurso y 500.000 caracteres de texto. Se requiere un navegador moderno con descompresión DEFLATE nativa; textos cifrados, ZIP64 y EPUB con DRM no son compatibles. Se tolera la ofuscación estándar de fuentes, porque no se extraen tipografías. Los EPUB pueden declarar el idioma incorrectamente: importa una edición que sepas que está en inglés.
+
+## Consultar palabras de tu libro
+Haz clic o toca una palabra: Tu diccionario muestra la glosa EN-ES disponible y su origen. Incluye vocabulario cotidiano y de ficcion, ademas del glosario anterior. Aprender guarda la palabra para repasar. Las glosas son orientativas de palabra aislada; varias acepciones requieren elegir el sentido de la oracion. No se envia texto a terceros. Si falta una entrada, se indica sin inventar traduccion. El diccionario tiene cobertura limitada y no traduce automaticamente libros completos.

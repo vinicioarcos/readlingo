@@ -35,6 +35,7 @@ function harness(saved=null,demo=false){
   replace:async state=>{context.localStorage.setItem('readlingo.v1',JSON.stringify(state));return {state}},
   recovery:async()=>persisted,protect:async()=>false
  };
+ vm.runInContext(fs.readFileSync(path.join(root,'web/dictionary.js'),'utf8'),context);
  vm.runInContext(code,context);
  return {context,ids,run:expr=>vm.runInContext(expr,context),ready:()=>vm.runInContext("appReady",context),data:()=>persisted};
 }
@@ -133,4 +134,27 @@ test('EPUB client integration preserves original text and makes no upload',async
  await h.run('importReading(file)');assert.match(h.ids.status.textContent,/no lo traduce/);
  const intact=h.data();h.context.ReadLingoEpub.extract=async()=>{throw Error('EPUB corrupto')};
  await assert.rejects(h.run('importReading(file)'));assert.equal(h.data(),intact);assert.equal(calls,0);
+});
+
+test('expanded local meanings select save and reload without API calls',async()=>{
+ const h=harness(null,true);await h.ready();let calls=0;
+ h.context.fetch=()=>{calls++;throw Error('Unexpected translation request')};
+ await h.run("addBook('English fiction','The prince drew a sheep. He saw a fox and a rose. He couldn\u2019t leave.')");
+ h.run("selectWord('prince')");assert.match(h.ids['word-meaning'].textContent,/pr\u00edncipe/);
+ assert.match(h.ids['word-source'].textContent,/Diccionario local/);
+ await h.run("storeWord('learning')");
+ const restored=harness(h.data(),true);await restored.ready();restored.run("selectWord('prince')");
+ assert.match(restored.ids['word-meaning'].textContent,/pr\u00edncipe/);
+ assert.match(restored.ids['word-source'].textContent,/Diccionario local/);
+ h.run("selectWord('constructor')");assert.match(h.ids['word-meaning'].textContent,/glosario local/);
+ h.run("selectWord('qzxunknown')");assert.equal(h.ids['word-ipa'].textContent,'');
+ assert.match(h.ids['word-source'].textContent,/Sin significado/);assert.equal(calls,0);
+});
+
+test('new glossary fills a previously pending saved meaning',async()=>{
+ const h=harness(null,true);await h.ready();
+ h.run("state.vocab.fox={meaning:'Significado pendiente de consultar',source:'Sin significado disponible',ipa:'',status:'learning',due:0,interval:0};selectWord('fox')");
+ assert.match(h.ids['word-meaning'].textContent,/zorro/);
+ assert.match(h.ids['word-source'].textContent,/Diccionario local/);
+ await h.run("storeWord('learning')");assert.match(JSON.parse(h.data()).vocab.fox.meaning,/zorro/);
 });

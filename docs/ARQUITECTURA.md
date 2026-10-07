@@ -2,7 +2,7 @@
 
 ## ADR-004: demostración estática en Vercel · 2026-10-06
 
-La demo pública publica únicamente los cinco archivos de interfaz permitidos mediante `scripts/build_web.cjs` y `vercel.json`, con Node 24.x como herramienta de compilación. HTML generado activa `data-runtime="demo"`; el HTML local conserva sus APIs. TXT se decodifica en el navegador con UTF-8 estricto y se trata como texto no confiable. Azure no está disponible en la demo; EPUB se procesa localmente en el navegador mediante web/epub.js. No hay backend, claves, audio enviado, datos por usuario en servidor ni funciones pagadas; por eso esta entrega no habilita las APIs públicas que requieren autenticación y cuotas. T010/T012/T013 permanecen pendientes para el producto completo.
+La demo pública publica únicamente los seis archivos de interfaz permitidos mediante `scripts/build_web.cjs` y `vercel.json`, con Node 24.x como herramienta de compilación. HTML generado activa `data-runtime="demo"`; el HTML local conserva sus APIs. TXT se decodifica en el navegador con UTF-8 estricto y se trata como texto no confiable. Azure no está disponible en la demo; EPUB se procesa localmente en el navegador mediante web/epub.js. No hay backend, claves, audio enviado, datos por usuario en servidor ni funciones pagadas; por eso esta entrega no habilita las APIs públicas que requieren autenticación y cuotas. T010/T012/T013 permanecen pendientes para el producto completo.
 
 CSP bloquea conexiones (`connect-src 'none'`), scripts externos y objetos; permite audio blob local y micrófono del mismo origen. Progreso e importaciones permanecen en IndexedDB y el audio en memoria. La síntesis depende de las voces del sistema, que pueden usar red. HTTPS lo aporta Vercel. No se expone el servidor loopback como servidor de producción.
 
@@ -43,3 +43,6 @@ Mantener dominio y lógica de lectura; migrar servidor a backend de producción 
 
 ## ADR-005: EPUB privado en el navegador
 Importador cliente sin dependencias externas de ejecución, con ZIP limitado, descompresión nativa y XML inerte. Sigue container/manifest/spine, entrega título/texto/idioma, valida integridad y limita entradas/expansión. El lector usa nodos de texto; nunca inserta HTML de un libro. La demo mantiene connect-src none y no envía libros ni audio. EPUB y TXT importados permanecen en el almacenamiento del navegador con los mismos límites y respaldos. El texto original no se traduce; metadatos no ingleses generan un aviso.
+
+## Diccionario local - 2026-10-06
+web/dictionary.js aporta entradas originales EN-ES como [glosa, IPA opcional], congeladas y sin prototipo. Se combina con el glosario anterior conservando su IPA; búsqueda exacta en minúsculas y normalización de apóstrofo tipográfico, sin inferir traducciones por sufijos. Fuente visible y almacenada. Sin nuevas dependencias, claves o peticiones externas; connect-src none se conserva. APIs oficiales consultadas: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/hasOwn y https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replaceAll. Versión probada se registra en VERIFICACION.
