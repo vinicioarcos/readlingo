@@ -10,6 +10,8 @@ Comprobaciones ejecutadas:
 
 - GET https://readlingo.arcdata.app/api/config respondió con translation=true, pronunciation=false, requiresAccess=true, wordOnly=true, provider=Azure Translator y plan=F0.
 - POST https://readlingo.arcdata.app/api/translate con Origin correcto, JSON {"text":"hello","consent":true} y sin Authorization devolvió HTTP 401.
+- POST con código inválido devolvió HTTP 401; una solicitud con origen https://example.org devolvió HTTP 403.
+- Las rutas /.env, /server.py y /lib/translation.mjs devolvieron HTTP 404. No se expusieron estos archivos.
 
 Estas comprobaciones validan activación y rechazo de acceso sin código; no prueban la autenticación ante Azure, el SKU real ni la calidad de traducción. Las variables Sensitive no se descargaron ni se imprimieron.
 
