@@ -108,3 +108,6 @@ Límites del importador del navegador: 10 MiB de archivo, 24 MiB de contenido de
 
 ## Consultar palabras de tu libro
 Haz clic o toca una palabra: Tu diccionario muestra la glosa EN-ES disponible y su origen. Incluye vocabulario cotidiano y de ficcion, ademas del glosario anterior. Aprender guarda la palabra para repasar. Las glosas son orientativas de palabra aislada; varias acepciones requieren elegir el sentido de la oracion. No se envia texto a terceros. Si falta una entrada, se indica sin inventar traduccion. El diccionario tiene cobertura limitada y no traduce automaticamente libros completos.
+
+## Voz preferida
+Al elegir una voz inglesa se guarda automaticamente para este navegador y dominio. Se recupera al recargar; si no esta disponible se usa la voz del dispositivo sin borrar la preferencia. Elegir Voz inglesa del dispositivo vuelve al valor predeterminado. Preferencia separada de libros y respaldos; restablecer progreso no la borra.

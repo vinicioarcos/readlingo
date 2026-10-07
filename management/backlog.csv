@@ -22,3 +22,4 @@ T020,demo,Demostracion estatica HTTPS en Vercel,Desarrollo,verified_live_demo,Ru
 T021,demo,Importacion EPUB privada en navegador,Lector,verified_live_demo,EPUB ingles en orden spine sin subir libros ni ejecutar HTML con errores visibles y progreso persistente
 T022,demo,Persistencia robusta del dispositivo,Lector,verified_live_demo,IndexedDB migracion no destructiva reinicio de navegador concurrencia errores visibles y restauracion transaccional
 T023,demo,Ampliar diccionario local EN ES,Lector,verified_live_demo,Seleccionar palabra importada mostrar glosa y origen guardar recargar sin API con desconocidos honestos
+T024,demo,Conservar voz preferida,Voz,in_progress,Seleccion recuperar tras recarga voces tardias ausentes y errores visibles sin persistir audio

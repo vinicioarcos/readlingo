@@ -429,12 +429,21 @@ function stopSpeech() {
   document.querySelectorAll('.speaking').forEach(el => el.classList.remove('speaking'));
   $('listen').textContent = '▶ Escuchar párrafo';
 }
+const VOICE_KEY = 'readlingo.voice.v1';
+let preferredVoice = null;
+let voicePreferenceError = false;
+try {
+  const raw = localStorage.getItem(VOICE_KEY);
+  if (raw) {
+    const value = JSON.parse(raw);
+    if (value && ['uri', 'name', 'lang'].every(key => typeof value[key] === 'string' && value[key].length <= 1000) && /^en[-_]/i.test(value.lang)) preferredVoice = value;
+  }
+} catch { voicePreferenceError = true; }
 function populateVoices() {
   if (!('speechSynthesis' in window)) {
     [$('listen'), $('word-listen'), $('sentence-listen')].forEach(el => el.disabled = true);
     return;
   }
-  const previous = $('voice').value;
   const voices = window.speechSynthesis.getVoices().filter(v => /^en[-_]/i.test(v.lang));
   $('voice').replaceChildren(create('option', '', 'Voz inglesa del dispositivo'));
   $('voice').options[0].value = '';
@@ -443,8 +452,19 @@ function populateVoices() {
     option.value = v.voiceURI;
     $('voice').append(option);
   });
-  if ([...$('voice').options].some(o => o.value === previous)) $('voice').value = previous;
+  const preferred = preferredVoice && (voices.find(v => v.voiceURI === preferredVoice.uri) || voices.find(v => v.name === preferredVoice.name && v.lang === preferredVoice.lang));
+  $('voice').value = preferred?.voiceURI || '';
+  $('voice-preference').textContent = voicePreferenceError ? 'No se pudo guardar o recuperar tu voz preferida. La selección sólo se conserva en esta sesión.' : preferred ? 'Voz preferida en este navegador.' : preferredVoice ? 'Tu voz preferida no está disponible todavía. Se usará la voz inglesa del dispositivo.' : 'La voz que elijas se guardará como preferida.';
 }
+$('voice').addEventListener('change', () => {
+  const voice = window.speechSynthesis?.getVoices().find(v => v.voiceURI === $('voice').value && /^en[-_]/i.test(v.lang));
+  preferredVoice = voice ? {uri: voice.voiceURI, name: voice.name, lang: voice.lang} : null;
+  try {
+    localStorage.setItem(VOICE_KEY, JSON.stringify(preferredVoice));
+    voicePreferenceError = false;
+  } catch { voicePreferenceError = true; }
+  populateVoices();
+});
 function speak(parts, highlight = false) {
   if (!('speechSynthesis' in window)) {
     notify('Este navegador no dispone de lectura en voz alta.', true);
